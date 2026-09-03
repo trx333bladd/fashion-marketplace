@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Blessed Shop</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="site-header">
+
+    <a href="index.html" class="brand">
+        BLESSED.
+    </a>
+
+    <nav class="main-nav">
+
+        <a href="index.html">Главная</a>
+
+        <a href="catalog.html?category=men">
+            Мужское
+        </a>
+
+        <a href="catalog.html?category=women">
+            Женское
+        </a>
+
+        <a href="catalog.html?category=shoes">
+            Обувь
+        </a>
+
+    </nav>
+
+    <div class="header-tools">
+
+        <button id="searchButton">
+            Поиск
+        </button>
+
+        <button id="favoritesButton">
+            ♡ <span id="favoritesCounter">0</span>
+        </button>
+
+        <button id="cartButton">
+            🛒 <span id="cartCounter">0</span>
+        </button>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="hero-copy">
+
+            <p class="eyebrow">
+                CURATED EVERYDAY WEAR
+            </p>
+
+            <h1>
+                Dress like<br>
+                you mean it.
+            </h1>
+
+            <p class="hero-text">
+                Blessed — небольшой магазин одежды,
+                где мы собираем вещи для повседневного
+                стиля, которые действительно хочется носить.
+            </p>
+
+            <a
+                href="#collections"
+                class="dark-button"
+            >
+                Смотреть коллекцию
+            </a>
+
+        </div>
+
+
+        <div class="hero-visual">
+
+            <img
+                src="images/banners/bannershop.jpg"
+                alt="Коллекция Blessed"
+            >
+
+            <span>
+                01 / 06
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- INTRO -->
+
+    <section class="intro-strip">
+
+        <p>
+            NO SEASON. NO RULES.
+        </p>
+
+        <p>
+            Вещи для реальных образов.
+        </p>
+
+    </section>
+
+
+    <!-- COLLECTIONS -->
+
+    <section
+        class="category-section"
+        id="collections"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <p class="eyebrow">
+                    КОЛЛЕКЦИИ
+                </p>
+
+                <h2>
+                    Выбери своё направление.
+                </h2>
+
+            </div>
+
+            <p class="heading-note">
+                Три категории.<br>
+                Один стиль.
+            </p>
+
+        </div>
+
+
+        <div class="category-grid">
+
+            <a
+                class="category-card category-card-tall"
+                href="catalog.html?category=men"
+            >
+
+                <img
+                    src="images/products/men/tshirt.jpg"
+                    alt="Мужская одежда"
+                >
+
+                <div class="category-card-content">
+
+                    <span>
+                        01
+                    </span>
+
+                    <h3>
+                        Мужское
+                    </h3>
+
+                    <p>
+                        Футболки, кофты, деним
+                    </p>
+
+                </div>
+
+            </a>
+
+
+            <a
+                class="category-card"
+                href="catalog.html?category=women"
+            >
+
+                <img
+                    src="images/products/women/women-hoodie.jpg"
+                    alt="Женская одежда"
+                >
+
+                <div class="category-card-content">
+
+                    <span>
+                        02
+                    </span>
+
+                    <h3>
+                        Женское
+                    </h3>
+
+                    <p>
+                        Футболки, кофты, джинсы
+                    </p>
+
+                </div>
+
+            </a>
+
+
+            <a
+                class="category-card"
+                href="catalog.html?category=shoes"
+            >
+
+                <img
+                    src="images/products/shoes/air-force-1.jpg"
+                    alt="Обувь"
+                >
+
+                <div class="category-card-content">
+
+                    <span>
+                        03
+                    </span>
+
+                    <h3>
+                        Обувь
+                    </h3>
+
+                    <p>
+                        Кроссовки и повседневные пары
+                    </p>
+
+                </div>
+
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- FEATURED -->
+
+    <section class="featured-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <p class="eyebrow">
+                    ИЗБРАННЫЕ ВЕЩИ
+                </p>
+
+                <h2>
+                    Несколько наших фаворитов.
+                </h2>
+
+            </div>
+
+            <a
+                href="catalog.html?category=all"
+                class="text-link"
+            >
+                Смотреть весь каталог →
+            </a>
+
+        </div>
+
+
+        <div
+            class="product-grid"
+            id="featuredProducts"
+        ></div>
+
+    </section>
+
+
+    <!-- ABOUT -->
+
+    <section class="about-section">
+
+        <div class="about-number">
+            B / 01
+        </div>
+
+        <div>
+
+            <p class="eyebrow">
+                О BLESSED
+            </p>
+
+            <h2>
+                Не огромный маркетплейс.
+                <br>
+                Только самое нужное.
+            </h2>
+
+        </div>
+
+        <p class="about-text">
+
+            Мы специально держим каталог компактным.
+            Меньше вещей — проще выбор и понятнее образы.
+            Blessed сочетает streetwear и базовые вещи,
+            чтобы одежда не терялась за интерфейсом.
+
+        </p>
+
+    </section>
+
+</main>
+
+
+<footer class="site-footer">
+
+    <div class="brand">
+        BLESSED.
+    </div>
+
+    <p>
+        Независимый магазин одежды · 2026
+    </p>
+
+    <a href="mailto:hello@blessed.shop">
+        hello@blessed.shop
+    </a>
+
+</footer>
+
+
+<!-- SEARCH -->
+
+<div
+    class="overlay"
+    id="searchWindow"
+>
+
+    <div class="search-box">
+
+        <button
+            class="close-button"
+            id="closeSearch"
+        >
+            ×
+        </button>
+
+        <p class="eyebrow">
+            ПОИСК
+        </p>
+
+        <input
+            id="searchInput"
+            type="text"
+            placeholder="Название товара..."
+        >
+
+        <div id="searchResults"></div>
+
+    </div>
+
+</div>
+
+
+<!-- DRAWER -->
+
+<aside
+    class="drawer"
+    id="sideDrawer"
+>
+
+    <div class="drawer-head">
+
+        <h2 id="drawerTitle">
+            Корзина
+        </h2>
+
+        <button
+            id="drawerClose"
+            class="close-button"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div
+        class="drawer-content"
+        id="drawerContent"
+    ></div>
+
+
+    <div
+        class="drawer-footer"
+        id="drawerFooter"
+    ></div>
+
+</aside>
+
+
+<div
+    class="drawer-backdrop"
+    id="drawerBackdrop"
+></div>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

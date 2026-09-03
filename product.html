@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Товар | Blessed</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<header class="site-header">
+
+    <a
+        href="index.html"
+        class="brand"
+    >
+        BLESSED.
+    </a>
+
+
+    <nav class="main-nav">
+
+        <a href="index.html">
+            Главная
+        </a>
+
+        <a href="catalog.html?category=men">
+            Мужское
+        </a>
+
+        <a href="catalog.html?category=women">
+            Женское
+        </a>
+
+        <a href="catalog.html?category=shoes">
+            Обувь
+        </a>
+
+    </nav>
+
+
+    <div class="header-tools">
+
+        <button id="searchButton">
+            Поиск
+        </button>
+
+        <button id="favoritesButton">
+            ♡ <span id="favoritesCounter">0</span>
+        </button>
+
+        <button id="cartButton">
+            🛒 <span id="cartCounter">0</span>
+        </button>
+
+    </div>
+
+</header>
+
+
+<main
+    class="product-page"
+    id="productPage"
+></main>
+
+
+<!-- DRAWER -->
+
+<aside
+    class="drawer"
+    id="sideDrawer"
+>
+
+    <div class="drawer-head">
+
+        <h2 id="drawerTitle">
+            Корзина
+        </h2>
+
+        <button
+            id="drawerClose"
+            class="close-button"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div
+        class="drawer-content"
+        id="drawerContent"
+    ></div>
+
+
+    <div
+        class="drawer-footer"
+        id="drawerFooter"
+    ></div>
+
+</aside>
+
+
+<div
+    class="drawer-backdrop"
+    id="drawerBackdrop"
+></div>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
