@@ -1,66 +1,63 @@
 <template>
 
-    <article class="card">
+    <article class="product-card">
 
-        <div class="card-image">
+        <RouterLink
+            :to="'/product/' + product.id"
+            class="product-card-link"
+        >
 
-            <RouterLink
-                :to="'/product/' + product.id"
-                class="card-link"
-            >
+            <div class="product-image">
 
                 <img
                     :src="product.images[0]"
                     :alt="product.name"
+                    @error="imageError"
                 >
 
-            </RouterLink>
+
+                <span
+                    v-if="product.is_new"
+                    class="product-badge"
+                >
+                    NEW
+                </span>
+
+            </div>
 
 
-            <button
-                class="heart"
-                @click.stop.prevent="toggle"
-            >
-                {{ isFavorite ? "♥" : "♡" }}
-            </button>
+            <div class="product-info">
 
-
-            <span
-                v-if="product.isNew"
-                class="new-label"
-            >
-                NEW
-            </span>
-
-        </div>
-
-
-        <RouterLink
-            :to="'/product/' + product.id"
-            class="card-info"
-        >
-
-            <div>
-
-                <small>
+                <p class="product-category">
                     {{ product.type }}
-                </small>
+                </p>
+
 
                 <h3>
                     {{ product.name }}
                 </h3>
 
-                <span>
+
+                <p class="product-brand">
                     {{ product.brand }}
-                </span>
+                </p>
+
+
+                <strong class="product-price">
+                    {{ price(product.price) }}
+                </strong>
 
             </div>
 
-            <strong>
-                {{ product.price.toLocaleString("ru-RU") }} ₸
-            </strong>
-
         </RouterLink>
+
+
+        <button
+            class="favorite-button"
+            @click="favorite"
+        >
+            {{ isFavorite ? "♥" : "♡" }}
+        </button>
 
     </article>
 
@@ -69,7 +66,10 @@
 
 <script setup>
 
-import { computed } from "vue";
+import {
+    computed
+} from "vue";
+
 
 import {
     store,
@@ -77,30 +77,70 @@ import {
 } from "../store";
 
 
-const props = defineProps({
+const props =
+    defineProps({
 
-    product: {
-        type: Object,
-        required: true
+        product: {
+            type: Object,
+            required: true
+        }
+
+    });
+
+
+const isFavorite =
+    computed(() => {
+
+        return store.favorites.some(
+            item =>
+                Number(item.id) ===
+                Number(props.product.id)
+        );
+
+    });
+
+
+function price(value) {
+
+    return Number(value)
+        .toLocaleString("ru-RU")
+        + " ₸";
+
+}
+
+
+async function favorite() {
+
+    if (!store.user) {
+
+        alert(
+            "Сначала войдите в аккаунт."
+        );
+
+        return;
+
     }
 
-});
+
+    try {
+
+        await toggleFavorite(
+            props.product.id
+        );
+
+    } catch (error) {
+
+        alert(error.message);
+
+    }
+
+}
 
 
-const isFavorite = computed(() => {
+function imageError(event) {
 
-    return store.favorites.includes(
-        props.product.id
-    );
-
-});
-
-
-function toggle() {
-
-    toggleFavorite(
-        props.product.id
-    );
+    event.target.style.display =
+        "none";
 
 }
 

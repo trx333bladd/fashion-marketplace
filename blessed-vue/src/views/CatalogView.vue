@@ -6,7 +6,7 @@
 
             <div>
 
-                <p class="eyebrow">
+                <p class="section-label">
                     {{ eyebrow }}
                 </p>
 
@@ -14,387 +14,235 @@
                     {{ title }}
                 </h1>
 
-                <p class="catalog-description">
-                    {{ description }}
-                </p>
-
             </div>
 
-            <div class="catalog-number">
-                {{ filteredProducts.length }} товаров
-            </div>
+
+            <span>
+                {{ filteredProducts.length }}
+                товаров
+            </span>
 
         </div>
 
 
         <div class="catalog-layout">
 
-            <!-- ЛЕВАЯ ПАНЕЛЬ -->
-
             <aside class="filters">
 
-                <div class="filters-top">
+                <div class="filter-section">
 
-                    <span>
-                        ФИЛЬТРЫ
-                    </span>
+                    <h3>
+                        Категория
+                    </h3>
 
-                    <button @click="resetFilters">
-                        СБРОСИТЬ
+
+                    <button
+                        :class="{
+                            active:
+                                selectedCategory === 'all'
+                        }"
+                        @click="setCategory('all')"
+                    >
+                        Все
+                    </button>
+
+
+                    <button
+                        :class="{
+                            active:
+                                selectedCategory === 'men'
+                        }"
+                        @click="setCategory('men')"
+                    >
+                        Мужское
+                    </button>
+
+
+                    <button
+                        :class="{
+                            active:
+                                selectedCategory === 'women'
+                        }"
+                        @click="setCategory('women')"
+                    >
+                        Женское
+                    </button>
+
+
+                    <button
+                        :class="{
+                            active:
+                                selectedCategory === 'shoes'
+                        }"
+                        @click="setCategory('shoes')"
+                    >
+                        Обувь
                     </button>
 
                 </div>
 
 
-                <!-- КАТЕГОРИЯ -->
+                <div
+                    v-if="types.length"
+                    class="filter-section"
+                >
 
-                <section class="filter-section">
+                    <h3>
+                        Раздел
+                    </h3>
+
 
                     <button
-                        class="filter-title"
-                        @click="categoryOpen = !categoryOpen"
+                        :class="{
+                            active:
+                                selectedType === ''
+                        }"
+                        @click="selectedType = ''"
                     >
-                        <span>Категория</span>
-                        <span>
-                            {{ categoryOpen ? "−" : "+" }}
-                        </span>
+                        Все
                     </button>
 
 
-                    <div v-if="categoryOpen">
-
-                        <button
-                            class="category-option"
-                            :class="{ active: category === 'men' }"
-                            @click="setCategory('men')"
-                        >
-                            <span>Мужское</span>
-                            <b>{{ countCategory("men") }}</b>
-                        </button>
-
-
-                        <div
-                            v-if="category === 'men'"
-                            class="subcategory"
-                        >
-
-                            <button
-                                v-for="type in categoryTypes"
-                                :key="type"
-                                :class="{
-                                    active: selectedType === type
-                                }"
-                                @click="setType(type)"
-                            >
-                                <span>
-                                    {{ type }}
-                                </span>
-
-                                <span>
-                                    {{ countType(type) }}
-                                </span>
-                            </button>
-
-                        </div>
-
-
-                        <button
-                            class="category-option"
-                            :class="{ active: category === 'women' }"
-                            @click="setCategory('women')"
-                        >
-                            <span>Женское</span>
-                            <b>{{ countCategory("women") }}</b>
-                        </button>
-
-
-                        <div
-                            v-if="category === 'women'"
-                            class="subcategory"
-                        >
-
-                            <button
-                                v-for="type in categoryTypes"
-                                :key="type"
-                                :class="{
-                                    active: selectedType === type
-                                }"
-                                @click="setType(type)"
-                            >
-                                <span>
-                                    {{ type }}
-                                </span>
-
-                                <span>
-                                    {{ countType(type) }}
-                                </span>
-                            </button>
-
-                        </div>
-
-
-                        <button
-                            class="category-option"
-                            :class="{ active: category === 'shoes' }"
-                            @click="setCategory('shoes')"
-                        >
-                            <span>Обувь</span>
-                            <b>{{ countCategory("shoes") }}</b>
-                        </button>
-
-
-                        <div
-                            v-if="category === 'shoes'"
-                            class="subcategory"
-                        >
-
-                            <button
-                                v-for="type in categoryTypes"
-                                :key="type"
-                                :class="{
-                                    active: selectedType === type
-                                }"
-                                @click="setType(type)"
-                            >
-                                <span>
-                                    {{ type }}
-                                </span>
-
-                                <span>
-                                    {{ countType(type) }}
-                                </span>
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-
-                <!-- СОРТИРОВКА -->
-
-                <section class="filter-section">
-
                     <button
-                        class="filter-title"
-                        @click="sortOpen = !sortOpen"
+                        v-for="type in types"
+                        :key="type"
+                        :class="{
+                            active:
+                                selectedType === type
+                        }"
+                        @click="selectedType = type"
                     >
-                        <span>Сортировка</span>
-                        <span>
-                            {{ sortOpen ? "−" : "+" }}
-                        </span>
+                        {{ type }}
                     </button>
 
-
-                    <div
-                        v-if="sortOpen"
-                        class="radio-list"
-                    >
-
-                        <label>
-                            <input
-                                v-model="sort"
-                                value="default"
-                                type="radio"
-                            >
-                            <span>По умолчанию</span>
-                        </label>
-
-                        <label>
-                            <input
-                                v-model="sort"
-                                value="popular"
-                                type="radio"
-                            >
-                            <span>По популярности</span>
-                        </label>
-
-                        <label>
-                            <input
-                                v-model="sort"
-                                value="cheap"
-                                type="radio"
-                            >
-                            <span>По увеличению цены</span>
-                        </label>
-
-                        <label>
-                            <input
-                                v-model="sort"
-                                value="expensive"
-                                type="radio"
-                            >
-                            <span>По уменьшению цены</span>
-                        </label>
-
-                    </div>
-
-                </section>
+                </div>
 
 
-                <!-- РАЗМЕР -->
+                <div class="filter-section">
 
-                <section class="filter-section">
-
-                    <button
-                        class="filter-title"
-                        @click="sizeOpen = !sizeOpen"
-                    >
-                        <span>Размер</span>
-                        <span>
-                            {{ sizeOpen ? "−" : "+" }}
-                        </span>
-                    </button>
+                    <h3>
+                        Размер
+                    </h3>
 
 
-                    <div
-                        v-if="sizeOpen"
-                        class="sizes"
-                    >
+                    <div class="size-buttons">
 
                         <button
-                            v-for="size in availableSizes"
+                            :class="{
+                                active:
+                                    selectedSize === ''
+                            }"
+                            @click="selectedSize = ''"
+                        >
+                            Все
+                        </button>
+
+
+                        <button
+                            v-for="size in sizes"
                             :key="size"
                             :class="{
-                                active: selectedSize === size
+                                active:
+                                    selectedSize === size
                             }"
-                            @click="setSize(size)"
+                            @click="selectedSize = size"
                         >
                             {{ size }}
                         </button>
 
                     </div>
 
-                </section>
+                </div>
 
 
-                <!-- ЦЕНА -->
+                <div class="filter-section">
 
-                <section class="filter-section">
-
-                    <button
-                        class="filter-title"
-                        @click="priceOpen = !priceOpen"
-                    >
-                        <span>Цена</span>
-                        <span>
-                            {{ priceOpen ? "−" : "+" }}
-                        </span>
-                    </button>
+                    <h3>
+                        Цена
+                    </h3>
 
 
-                    <div
-                        v-if="priceOpen"
-                        class="price-box"
-                    >
-
-                        <div class="price-inputs">
-
-                            <label>
-                                ОТ
-
-                                <input
-                                    v-model.number="minPrice"
-                                    type="number"
-                                    :min="priceLimit.min"
-                                    :max="priceLimit.max"
-                                >
-                            </label>
-
-
-                            <label>
-                                ДО
-
-                                <input
-                                    v-model.number="maxPrice"
-                                    type="number"
-                                    :min="priceLimit.min"
-                                    :max="priceLimit.max"
-                                >
-                            </label>
-
-                        </div>
-
+                    <div class="price-inputs">
 
                         <input
                             v-model.number="minPrice"
-                            type="range"
-                            :min="priceLimit.min"
-                            :max="priceLimit.max"
+                            type="number"
+                            placeholder="От"
                         >
-
 
                         <input
                             v-model.number="maxPrice"
-                            type="range"
-                            :min="priceLimit.min"
-                            :max="priceLimit.max"
+                            type="number"
+                            placeholder="До"
                         >
 
                     </div>
 
-                </section>
+                </div>
 
 
-                <!-- ДОПОЛНИТЕЛЬНЫЕ -->
+                <div class="filter-section">
 
-                <section class="filter-section">
-
-                    <label class="switch">
-
-                        <span>
-                            Только в наличии
-                        </span>
-
-                        <input
-                            v-model="onlyAvailable"
-                            type="checkbox"
-                        >
-
-                        <i></i>
-
-                    </label>
+                    <h3>
+                        Сортировка
+                    </h3>
 
 
-                    <label class="switch">
+                    <select v-model="sort">
 
-                        <span>
-                            Только новинки
-                        </span>
+                        <option value="default">
+                            По умолчанию
+                        </option>
 
-                        <input
-                            v-model="onlyNew"
-                            type="checkbox"
-                        >
+                        <option value="cheap">
+                            Сначала дешевле
+                        </option>
 
-                        <i></i>
+                        <option value="expensive">
+                            Сначала дороже
+                        </option>
 
-                    </label>
+                        <option value="new">
+                            Новинки
+                        </option>
 
-                </section>
+                    </select>
+
+                </div>
 
             </aside>
 
 
-            <!-- ПРАВАЯ ЧАСТЬ -->
+            <section class="catalog-results">
 
-            <section class="results">
-
-                <div class="results-top">
-
-                    <span>
-                        {{ filteredProducts.length }} результатов
-                    </span>
-
-                    <span>
-                        BLESSED / ARCHIVE
-                    </span>
-
+                <div
+                    v-if="loading"
+                    class="catalog-message"
+                >
+                    Загрузка товаров...
                 </div>
 
 
-                <div class="products">
+                <div
+                    v-else-if="error"
+                    class="catalog-message"
+                >
+                    {{ error }}
+                </div>
+
+
+                <div
+                    v-else-if="filteredProducts.length === 0"
+                    class="catalog-message"
+                >
+                    Ничего не найдено.
+                </div>
+
+
+                <div
+                    v-else
+                    class="product-grid"
+                >
 
                     <ProductCard
                         v-for="product in filteredProducts"
@@ -402,14 +250,6 @@
                         :product="product"
                     />
 
-                </div>
-
-
-                <div
-                    v-if="filteredProducts.length === 0"
-                    class="empty-products"
-                >
-                    По выбранным параметрам ничего не найдено.
                 </div>
 
             </section>
@@ -423,424 +263,334 @@
 
 <script setup>
 
-import { computed, ref } from "vue";
+import {
+    computed,
+    onMounted,
+    ref
+} from "vue";
 
-import { useRoute, useRouter } from "vue-router";
+import {
+    useRoute,
+    useRouter
+} from "vue-router";
 
-import { products } from "../products";
+import ProductCard
+    from "../components/ProductCard.vue";
 
-import ProductCard from "../components/ProductCard.vue";
-
-
-const route = useRoute();
-
-const router = useRouter();
-
-
-const categoryOpen = ref(true);
-const sortOpen = ref(true);
-const sizeOpen = ref(true);
-const priceOpen = ref(true);
-
-
-const category = computed(() => {
-
-    return route.query.category || "all";
-
-});
+import {
+    getProducts
+} from "../api";
 
 
-const selectedType = computed(() => {
+const route =
+    useRoute();
 
-    return route.query.type || "";
-
-});
-
-
-const selectedSize = computed(() => {
-
-    return route.query.size || "";
-
-});
+const router =
+    useRouter();
 
 
-const sort = ref("default");
+const products =
+    ref([]);
 
-const minPrice = ref(0);
+const loading =
+    ref(true);
 
-const maxPrice = ref(60000);
-
-const onlyAvailable = ref(false);
-
-const onlyNew = ref(false);
+const error =
+    ref("");
 
 
-// =========================
-// ТОВАРЫ КАТЕГОРИИ
-// =========================
-
-const categoryProducts = computed(() => {
-
-    if (category.value === "all") {
-        return products;
-    }
-
-    return products.filter(product =>
-        product.category === category.value
+const selectedCategory =
+    ref(
+        route.query.category || "all"
     );
 
-});
+const selectedType =
+    ref("");
+
+const selectedSize =
+    ref("");
+
+const minPrice =
+    ref(null);
+
+const maxPrice =
+    ref(null);
+
+const sort =
+    ref("default");
 
 
-// =========================
-// ПОДКАТЕГОРИИ
-// =========================
+const categoryNames = {
 
-const categoryTypes = computed(() => {
+    all: "Все товары",
 
-    return [
-        ...new Set(
-            categoryProducts.value.map(
-                product => product.type
-            )
-        )
-    ];
+    men: "Мужское",
 
-});
+    women: "Женское",
+
+    shoes: "Обувь"
+
+};
 
 
-// =========================
-// РАЗМЕРЫ
-// =========================
+const categoryMap = {
 
-const availableSizes = computed(() => {
+    all: null,
 
-    // ОБУВЬ
-    if (category.value === "shoes") {
+    men: "Мужское",
+
+    women: "Женское",
+
+    shoes: "Обувь"
+
+};
+
+
+async function loadProducts() {
+
+    try {
+
+        products.value =
+            await getProducts();
+
+    } catch (err) {
+
+        error.value =
+            "Не удалось загрузить товары.";
+
+        console.error(err);
+
+    } finally {
+
+        loading.value = false;
+
+    }
+
+}
+
+
+onMounted(
+    loadProducts
+);
+
+
+const categoryProducts =
+    computed(() => {
+
+        if (
+            selectedCategory.value === "all"
+        ) {
+
+            return products.value;
+
+        }
+
+
+        return products.value.filter(
+            product =>
+                product.category ===
+                categoryMap[
+                    selectedCategory.value
+                ]
+        );
+
+    });
+
+
+const types =
+    computed(() => {
 
         return [
-            "36",
-            "37",
-            "38",
-            "39",
-            "40",
-            "41",
-            "42",
-            "43",
-            "44",
-            "45"
+            ...new Set(
+                categoryProducts.value.map(
+                    product =>
+                        product.type
+                )
+            )
         ];
 
-    }
+    });
 
 
-    // ДЖИНСЫ
-    if (selectedType.value === "Джинсы") {
+const sizes =
+    computed(() => {
+
+        if (
+            selectedCategory.value === "shoes"
+        ) {
+
+            return [
+                "36",
+                "37",
+                "38",
+                "39",
+                "40",
+                "41",
+                "42",
+                "43",
+                "44",
+                "45"
+            ];
+
+        }
+
 
         return [
-            "26",
-            "28",
-            "30",
-            "32",
-            "34",
-            "36"
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL"
         ];
 
-    }
-
-
-    // ВЕРХНЯЯ ОДЕЖДА
-    return [
-        "XS",
-        "S",
-        "M",
-        "L",
-        "XL"
-    ];
-
-});
-
-
-// =========================
-// ЦЕНЫ
-// =========================
-
-const priceLimit = computed(() => {
-
-    const prices = categoryProducts.value.map(
-        product => product.price
-    );
-
-    return {
-        min: Math.min(...prices),
-        max: Math.max(...prices)
-    };
-
-});
-
-
-// =========================
-// ФИЛЬТРАЦИЯ
-// =========================
-
-const filteredProducts = computed(() => {
-
-    let list = [...categoryProducts.value];
-
-
-    if (selectedType.value) {
-
-        list = list.filter(product =>
-            product.type === selectedType.value
-        );
-
-    }
-
-
-    if (selectedSize.value) {
-
-        list = list.filter(product =>
-            product.sizes.includes(
-                selectedSize.value
-            )
-        );
-
-    }
-
-
-    list = list.filter(product => {
-
-        return (
-            product.price >= minPrice.value &&
-            product.price <= maxPrice.value
-        );
-
     });
 
 
-    if (onlyAvailable.value) {
+const filteredProducts =
+    computed(() => {
 
-        list = list.filter(product =>
-            product.status === "В наличии"
-        );
-
-    }
+        let result =
+            [...categoryProducts.value];
 
 
-    if (onlyNew.value) {
+        if (selectedType.value) {
 
-        list = list.filter(product =>
-            product.isNew
-        );
+            result =
+                result.filter(
+                    product =>
+                        product.type ===
+                        selectedType.value
+                );
 
-    }
-
-
-    if (sort.value === "cheap") {
-
-        list.sort(
-            (a, b) => a.price - b.price
-        );
-
-    }
-
-
-    if (sort.value === "expensive") {
-
-        list.sort(
-            (a, b) => b.price - a.price
-        );
-
-    }
-
-
-    if (sort.value === "popular") {
-
-        list.sort(
-            (a, b) =>
-                Number(b.isNew) -
-                Number(a.isNew)
-        );
-
-    }
-
-
-    return list;
-
-});
-
-
-// =========================
-// ЗАГОЛОВКИ
-// =========================
-
-const title = computed(() => {
-
-    if (category.value === "men") {
-        return "Мужское";
-    }
-
-    if (category.value === "women") {
-        return "Женское";
-    }
-
-    if (category.value === "shoes") {
-        return "Обувь";
-    }
-
-    return "Все товары";
-
-});
-
-
-const eyebrow = computed(() => {
-
-    if (selectedType.value) {
-        return selectedType.value.toUpperCase();
-    }
-
-    if (category.value === "men") {
-        return "МУЖСКАЯ КОЛЛЕКЦИЯ";
-    }
-
-    if (category.value === "women") {
-        return "ЖЕНСКАЯ КОЛЛЕКЦИЯ";
-    }
-
-    if (category.value === "shoes") {
-        return "SHOE ARCHIVE";
-    }
-
-    return "BLESSED ARCHIVE";
-
-});
-
-
-const description = computed(() => {
-
-    if (category.value === "men") {
-        return "Футболки, кофты, джинсы, поло.";
-    }
-
-    if (category.value === "women") {
-        return "Футболки, кофты, джинсы, поло.";
-    }
-
-    if (category.value === "shoes") {
-        return "Кроссовки, тапочки и обувь.";
-    }
-
-    return "Вся коллекция Blessed в одном архиве.";
-
-});
-
-
-// =========================
-// ФУНКЦИИ
-// =========================
-
-function countCategory(name) {
-
-    return products.filter(
-        product => product.category === name
-    ).length;
-
-}
-
-
-function countType(type) {
-
-    return categoryProducts.value.filter(
-        product => product.type === type
-    ).length;
-
-}
-
-
-function setCategory(value) {
-
-    router.push({
-        path: "/catalog",
-        query: {
-            category: value
         }
+
+
+        if (selectedSize.value) {
+
+            result =
+                result.filter(
+                    product =>
+                        product.sizes.includes(
+                            selectedSize.value
+                        )
+                );
+
+        }
+
+
+        if (minPrice.value !== null) {
+
+            result =
+                result.filter(
+                    product =>
+                        Number(product.price) >=
+                        Number(minPrice.value)
+                );
+
+        }
+
+
+        if (maxPrice.value !== null) {
+
+            result =
+                result.filter(
+                    product =>
+                        Number(product.price) <=
+                        Number(maxPrice.value)
+                );
+
+        }
+
+
+        if (sort.value === "cheap") {
+
+            result.sort(
+                (a, b) =>
+                    a.price - b.price
+            );
+
+        }
+
+
+        if (sort.value === "expensive") {
+
+            result.sort(
+                (a, b) =>
+                    b.price - a.price
+            );
+
+        }
+
+
+        if (sort.value === "new") {
+
+            result.sort(
+                (a, b) =>
+                    Number(b.is_new) -
+                    Number(a.is_new)
+            );
+
+        }
+
+
+        return result;
+
     });
 
-}
+
+const title =
+    computed(() => {
+
+        return categoryNames[
+            selectedCategory.value
+        ];
+
+    });
 
 
-function setType(type) {
+const eyebrow =
+    computed(() => {
 
-    if (selectedType.value === type) {
+        if (
+            selectedCategory.value === "shoes"
+        ) {
+            return "FOOTWEAR";
+        }
 
-        router.push({
-            path: "/catalog",
-            query: {
-                category: category.value
-            }
-        });
+        if (
+            selectedCategory.value === "men"
+        ) {
+            return "MEN COLLECTION";
+        }
 
-        return;
-    }
+        if (
+            selectedCategory.value === "women"
+        ) {
+            return "WOMEN COLLECTION";
+        }
+
+        return "BLESSED ARCHIVE";
+
+    });
+
+
+function setCategory(category) {
+
+    selectedCategory.value =
+        category;
+
+    selectedType.value = "";
+
+    selectedSize.value = "";
 
 
     router.push({
         path: "/catalog",
-        query: {
-            category: category.value,
-            type: type
-        }
+        query:
+            category === "all"
+                ? {}
+                : { category }
     });
-
-}
-
-
-function setSize(size) {
-
-    if (selectedSize.value === size) {
-
-        router.push({
-            path: "/catalog",
-            query: {
-                ...route.query,
-                size: undefined
-            }
-        });
-
-        return;
-    }
-
-
-    router.push({
-        path: "/catalog",
-        query: {
-            ...route.query,
-            size
-        }
-    });
-
-}
-
-
-function resetFilters() {
-
-    router.push({
-        path: "/catalog",
-        query: {
-            category: category.value
-        }
-    });
-
-
-    sort.value = "default";
-
-    minPrice.value = 0;
-
-    maxPrice.value = 60000;
-
-    onlyAvailable.value = false;
-
-    onlyNew.value = false;
 
 }
 

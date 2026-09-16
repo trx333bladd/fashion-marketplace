@@ -4,7 +4,26 @@
 
         <section class="hero">
 
-            <div class="hero-text">
+            <div class="hero-image">
+
+                <!-- LIGHT THEME -->
+                <img
+                    class="hero-banner hero-banner-light"
+                    src="/images/banners/blessed-light.jpg"
+                    alt="Blessed Shop"
+                >
+
+                <!-- DARK THEME -->
+                <img
+                    class="hero-banner hero-banner-dark"
+                    src="/images/banners/blessed-dark.jpg"
+                    alt="Blessed Shop"
+                >
+
+            </div>
+
+
+            <div class="hero-content">
 
                 <p class="eyebrow">
                     CURATED EVERYDAY WEAR
@@ -27,16 +46,6 @@
                 >
                     Смотреть коллекцию
                 </RouterLink>
-
-            </div>
-
-
-            <div class="hero-image">
-
-                <img
-                    src="/images/banners/bannershop.jpg"
-                    alt="Blessed Shop"
-                >
 
             </div>
 

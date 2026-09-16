@@ -11,7 +11,23 @@
 
 
         <div
-            v-if="product"
+            v-if="loading"
+            class="empty-products"
+        >
+            Загрузка товара...
+        </div>
+
+
+        <div
+            v-else-if="error"
+            class="empty-products"
+        >
+            {{ error }}
+        </div>
+
+
+        <div
+            v-else-if="product"
             class="product-layout"
         >
 
@@ -20,23 +36,23 @@
                 <div class="main-photo">
 
                     <img
-                        :src="product.images[currentImage]"
+                        :src="getImageUrl(product.images[currentImage])"
                         :alt="product.name"
                     >
-
 
                     <button
                         v-if="product.images.length > 1"
                         class="gallery-arrow gallery-left"
+                        type="button"
                         @click="previousImage"
                     >
                         ←
                     </button>
 
-
                     <button
                         v-if="product.images.length > 1"
                         class="gallery-arrow gallery-right"
+                        type="button"
                         @click="nextImage"
                     >
                         →
@@ -52,18 +68,17 @@
 
                     <button
                         v-for="(image, index) in product.images"
-                        :key="image"
+                        :key="image + index"
+                        type="button"
                         :class="{
                             active: currentImage === index
                         }"
                         @click="currentImage = index"
                     >
-
                         <img
-                            :src="image"
+                            :src="getImageUrl(image)"
                             :alt="product.name"
                         >
-
                     </button>
 
                 </div>
@@ -86,20 +101,23 @@
                 </h1>
 
                 <div class="big-price">
-                    {{ product.price.toLocaleString("ru-RU") }} ₸
+                    {{ formatPrice(product.price) }}
                 </div>
 
 
-                <!-- РАЗМЕР -->
+                <div
+                    v-if="recommendedSize"
+                    class="recommended-size"
+                >
+                    <span>Рекомендуем вам:</span>
+                    <strong>{{ recommendedSize }}</strong>
+                </div>
+
 
                 <section class="product-section">
 
                     <div class="section-row">
-
-                        <h2>
-                            Размер
-                        </h2>
-
+                        <h2>Размер</h2>
                         <span>
                             {{
                                 selectedSize
@@ -107,15 +125,14 @@
                                     : "Выберите размер"
                             }}
                         </span>
-
                     </div>
-
 
                     <div class="product-sizes">
 
                         <button
                             v-for="size in product.sizes"
                             :key="size"
+                            type="button"
                             :class="{
                                 active: selectedSize === size
                             }"
@@ -129,80 +146,67 @@
                 </section>
 
 
-                <!-- КНОПКИ -->
-
                 <div class="product-buttons">
 
                     <button
                         class="main-button"
+                        type="button"
                         @click="add"
                     >
                         {{ added ? "Добавлено ✓" : "В КОРЗИНУ" }}
                     </button>
 
-
                     <button
                         class="second-button"
+                        type="button"
                         @click="favorite"
                     >
-                        {{
-                            isFavorite
-                                ? "♥ Сохранено"
-                                : "♡ В ИЗБРАННОЕ"
-                        }}
+                        {{ isFavorite ? "♥ Сохранено" : "♡ В ИЗБРАННОЕ" }}
                     </button>
 
                 </div>
 
 
-                <!-- ОПИСАНИЕ -->
-
                 <section class="product-section">
 
-                    <h2>
-                        О товаре
-                    </h2>
+                    <h2>О товаре</h2>
 
                     <p class="long-text">
-                        {{ product.description }}
+                        {{ product.description || "Описание товара отсутствует." }}
                     </p>
 
                 </section>
 
 
-                <!-- ХАРАКТЕРИСТИКИ -->
-
                 <section class="product-section">
 
-                    <h2>
-                        Характеристики
-                    </h2>
+                    <h2>Характеристики</h2>
 
                     <div class="specs">
 
                         <div>
                             <span>Бренд</span>
-                            <strong>{{ product.brand }}</strong>
+                            <strong>{{ product.brand || "—" }}</strong>
                         </div>
 
                         <div>
                             <span>Материал</span>
-                            <strong>{{ product.material }}</strong>
+                            <strong>{{ product.material || "—" }}</strong>
                         </div>
 
                         <div>
                             <span>Цвет</span>
-                            <strong>{{ product.color }}</strong>
+                            <strong>{{ product.color || "—" }}</strong>
                         </div>
 
                         <div>
                             <span>Сезон</span>
-                            <strong>{{ product.season }}</strong>
+                            <strong>{{ product.season || "—" }}</strong>
                         </div>
 
                         <div>
                             <span>Стилистика</span>
-                            <strong>{{ product.style }}</strong>
+                            <strong>{{ product.style || "—" }}</strong>
                         </div>
 
                     </div>
@@ -210,17 +214,12 @@
                 </section>
 
 
-                <!-- РАЗМЕРНАЯ СЕТКА -->
-
                 <section class="product-section">
 
-                    <h2>
-                        Размерная сетка
-                    </h2>
-
+                    <h2>Размерная сетка</h2>
 
                     <div
-                        v-if="product.category !== 'shoes'"
+                        v-if="!isShoes"
                         class="size-chart"
                     >
 
@@ -230,14 +229,12 @@
                             <span>Талия</span>
                         </div>
 
-
                         <div
                             v-for="row in clothingSizes"
                             :key="row.size"
                             class="chart-row"
                             :class="{
-                                active:
-                                    product.sizes.includes(row.size)
+                                active: product.sizes.includes(row.size)
                             }"
                         >
                             <span>{{ row.size }}</span>
@@ -258,14 +255,12 @@
                             <span>Стопа</span>
                         </div>
 
-
                         <div
                             v-for="row in shoeSizes"
                             :key="row.size"
                             class="chart-row shoe-row"
                             :class="{
-                                active:
-                                    product.sizes.includes(row.size)
+                                active: product.sizes.includes(row.size)
                             }"
                         >
                             <span>{{ row.size }}</span>
@@ -295,11 +290,15 @@
 
 <script setup>
 
-import { computed, ref } from "vue";
+import {
+    computed,
+    onMounted,
+    ref
+} from "vue";
 
 import { useRoute } from "vue-router";
 
-import { products } from "../products";
+import { getProducts } from "../api";
 
 import {
     store,
@@ -310,6 +309,11 @@ import {
 
 const route = useRoute();
 
+const products = ref([]);
+
+const loading = ref(true);
+
+const error = ref("");
 
 const currentImage = ref(0);
 
@@ -318,11 +322,55 @@ const selectedSize = ref("");
 const added = ref(false);
 
 
+async function loadProducts() {
+
+    try {
+
+        loading.value = true;
+        error.value = "";
+
+        products.value = await getProducts();
+
+    } catch (err) {
+
+        console.error(err);
+        error.value = "Не удалось загрузить товар.";
+
+    } finally {
+
+        loading.value = false;
+
+    }
+
+}
+
+
+onMounted(loadProducts);
+
+
 const product = computed(() => {
 
-    return products.find(product =>
-        product.id === route.params.id
+    return products.value.find(item =>
+        Number(item.id) === Number(route.params.id)
     );
+
+});
+
+
+const isShoes = computed(() => {
+
+    if (!product.value) {
+        return false;
+    }
+
+    const category = String(product.value.category || "").toLowerCase();
+    const type = String(product.value.type || "").toLowerCase();
+
+    return category === "shoes" ||
+        category === "обувь" ||
+        type.includes("обув") ||
+        type.includes("кроссов") ||
+        type.includes("тапоч");
 
 });
 
@@ -333,39 +381,60 @@ const isFavorite = computed(() => {
         return false;
     }
 
-    return store.favorites.includes(
-        product.value.id
+    return store.favorites.some(item =>
+        Number(item.id || item.product_id) === Number(product.value.id)
     );
 
 });
 
 
-const clothingSizes = [
-    {
-        size: "XS",
-        chest: "82–86 см",
-        waist: "62–66 см"
-    },
-    {
-        size: "S",
-        chest: "86–92 см",
-        waist: "66–72 см"
-    },
-    {
-        size: "M",
-        chest: "92–98 см",
-        waist: "72–78 см"
-    },
-    {
-        size: "L",
-        chest: "98–104 см",
-        waist: "78–84 см"
-    },
-    {
-        size: "XL",
-        chest: "104–110 см",
-        waist: "84–90 см"
+const recommendedSize = computed(() => {
+
+    if (!product.value || !store.user) {
+        return "";
     }
+
+    if (isShoes.value) {
+
+        if (!store.user.shoe_size) {
+            return "";
+        }
+
+        const size = String(store.user.shoe_size);
+
+        return product.value.sizes.includes(size) ? size : "";
+
+    }
+
+    const weight = Number(store.user.weight);
+
+    if (!weight) {
+        return "";
+    }
+
+    let size = "M";
+
+    if (weight <= 65) {
+        size = "S";
+    } else if (weight <= 80) {
+        size = "M";
+    } else if (weight <= 95) {
+        size = "L";
+    } else {
+        size = "XL";
+    }
+
+    return product.value.sizes.includes(size) ? size : "";
+
+});
+
+
+const clothingSizes = [
+    { size: "XS", chest: "82–86 см", waist: "62–66 см" },
+    { size: "S", chest: "86–92 см", waist: "66–72 см" },
+    { size: "M", chest: "92–98 см", waist: "72–78 см" },
+    { size: "L", chest: "98–104 см", waist: "78–84 см" },
+    { size: "XL", chest: "104–110 см", waist: "84–90 см" }
 ];
 
 
@@ -383,60 +452,104 @@ const shoeSizes = [
 ];
 
 
+function getImageUrl(image) {
+
+    if (!image) {
+        return "";
+    }
+
+    const path = String(image).trim();
+
+    if (/^https?:\/\//i.test(path) || path.startsWith("/")) {
+        return path;
+    }
+
+    return "/" + path;
+
+}
+
+
+function formatPrice(value) {
+
+    return Number(value).toLocaleString("ru-RU") + " ₸";
+
+}
+
+
 function nextImage() {
 
+    if (!product.value || product.value.images.length <= 1) {
+        return;
+    }
+
     currentImage.value =
-        (currentImage.value + 1) %
-        product.value.images.length;
+        (currentImage.value + 1) % product.value.images.length;
 
 }
 
 
 function previousImage() {
 
+    if (!product.value || product.value.images.length <= 1) {
+        return;
+    }
+
     currentImage.value =
-        (currentImage.value - 1 + product.value.images.length) %
-        product.value.images.length;
+        (currentImage.value - 1 + product.value.images.length) % product.value.images.length;
 
 }
 
 
-function add() {
+async function add() {
 
     if (!product.value) {
         return;
     }
 
+    if (!store.user) {
+        alert("Сначала войдите в аккаунт.");
+        return;
+    }
 
     if (!selectedSize.value) {
-
         alert("Сначала выберите размер.");
-
         return;
-
     }
 
+    try {
 
-    addToCart(
-        product.value.id,
-        selectedSize.value
-    );
+        await addToCart(product.value.id, selectedSize.value);
+        added.value = true;
 
+    } catch (err) {
 
-    added.value = true;
+        alert(err.message);
+
+    }
 
 }
 
 
-function favorite() {
+async function favorite() {
 
     if (!product.value) {
         return;
     }
 
-    toggleFavorite(
-        product.value.id
-    );
+    if (!store.user) {
+        alert("Сначала войдите в аккаунт.");
+        return;
+    }
+
+    try {
+
+        await toggleFavorite(product.value.id);
+
+    } catch (err) {
+
+        alert(err.message);
+
+    }
 
 }
 

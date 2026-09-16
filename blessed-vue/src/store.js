@@ -1,97 +1,382 @@
 import { reactive } from "vue";
 
+
+import {
+    getProfile,
+    updateProfile,
+    getCart,
+    addCartItem,
+    updateCartItem,
+    deleteCartItem,
+    getFavorites,
+    addFavorite,
+    removeFavorite,
+    getOrders,
+    createOrder
+} from "./api";
+
+
 export const store = reactive({
-    cart: JSON.parse(localStorage.getItem("cart") || "[]"),
-    favorites: JSON.parse(localStorage.getItem("favorites") || "[]")
+
+    token:
+        localStorage.getItem("token") || "",
+
+    user:
+        JSON.parse(
+            localStorage.getItem("user") || "null"
+        ),
+
+    cart: [],
+
+    favorites: [],
+
+    orders: [],
+
+    loaded: false
+
 });
 
 
-function save() {
+/* =========================
+   SESSION
+========================= */
+
+
+export function saveSession(data) {
+
+    store.token =
+        data.token || "";
+
+    store.user =
+        data.user || null;
+
+
     localStorage.setItem(
-        "cart",
-        JSON.stringify(store.cart)
+        "token",
+        store.token
     );
+
 
     localStorage.setItem(
-        "favorites",
-        JSON.stringify(store.favorites)
+        "user",
+        JSON.stringify(
+            store.user
+        )
     );
+
 }
 
 
-export function addToCart(id, size = "") {
+export async function loginSession(data) {
 
-    const item = store.cart.find(item =>
-        item.id === id && item.size === size
-    );
+    saveSession(data);
 
-    if (item) {
-        item.quantity++;
-    } else {
-        store.cart.push({
-            id,
-            size,
-            quantity: 1
-        });
-    }
+    await loadUserData();
 
-    save();
 }
 
 
-export function changeQuantity(id, size, amount) {
+/* =========================
+   ADMIN
+========================= */
 
-    const item = store.cart.find(item =>
-        item.id === id && item.size === size
+
+export function isAdmin() {
+
+    return (
+        !!store.user &&
+        store.user.role === "admin"
     );
 
-    if (!item) {
-        return;
-    }
-
-    item.quantity += amount;
-
-    if (item.quantity <= 0) {
-        store.cart = store.cart.filter(item =>
-            !(item.id === id && item.size === size)
-        );
-    }
-
-    save();
 }
 
 
-export function removeFromCart(id, size) {
-
-    store.cart = store.cart.filter(item =>
-        !(item.id === id && item.size === size)
-    );
-
-    save();
-}
+/* =========================
+   LOGOUT
+========================= */
 
 
-export function clearCart() {
+export function logout() {
+
+    store.token = "";
+
+    store.user = null;
 
     store.cart = [];
 
-    save();
+    store.favorites = [];
+
+    store.orders = [];
+
+    store.loaded = false;
+
+
+    localStorage.removeItem(
+        "token"
+    );
+
+    localStorage.removeItem(
+        "user"
+    );
+
 }
 
 
-export function toggleFavorite(id) {
+/* =========================
+   LOAD USER DATA
+========================= */
 
-    if (store.favorites.includes(id)) {
 
-        store.favorites = store.favorites.filter(
-            item => item !== id
+export async function loadUserData() {
+
+    if (!store.token) {
+
+        store.loaded = true;
+
+        return;
+
+    }
+
+
+    try {
+
+        store.user =
+            await getProfile();
+
+
+        store.cart =
+            await getCart();
+
+
+        store.favorites =
+            await getFavorites();
+
+
+        store.orders =
+            await getOrders();
+
+
+        localStorage.setItem(
+            "user",
+            JSON.stringify(
+                store.user
+            )
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Ошибка загрузки пользователя:",
+            error
+        );
+
+        logout();
+
+    } finally {
+
+        store.loaded = true;
+
+    }
+
+}
+
+
+/* =========================
+   CART
+========================= */
+
+
+export async function addToCart(
+    productId,
+    size
+) {
+
+    if (!store.token) {
+
+        throw new Error(
+            "Сначала войдите в аккаунт."
+        );
+
+    }
+
+
+    await addCartItem(
+        productId,
+        size,
+        1
+    );
+
+
+    store.cart =
+        await getCart();
+
+}
+
+
+export async function changeCartQuantity(
+    productId,
+    size,
+    quantity
+) {
+
+    await updateCartItem(
+        productId,
+        size,
+        quantity
+    );
+
+
+    store.cart =
+        await getCart();
+
+}
+
+
+export async function removeFromCart(
+    productId,
+    size
+) {
+
+    await deleteCartItem(
+        productId,
+        size
+    );
+
+
+    store.cart =
+        await getCart();
+
+}
+
+
+/* =========================
+   FAVORITES
+========================= */
+
+
+export async function toggleFavorite(
+    productId
+) {
+
+    if (!store.token) {
+
+        throw new Error(
+            "Сначала войдите в аккаунт."
+        );
+
+    }
+
+
+    const exists =
+        store.favorites.some(
+            product =>
+                Number(product.id) ===
+                Number(productId)
+        );
+
+
+    if (exists) {
+
+        await removeFavorite(
+            productId
         );
 
     } else {
 
-        store.favorites.push(id);
+        await addFavorite(
+            productId
+        );
 
     }
 
-    save();
+
+    store.favorites =
+        await getFavorites();
+
+}
+
+
+/* =========================
+   PROFILE
+========================= */
+
+
+export async function saveProfile(
+    data
+) {
+
+    if (!store.token) {
+
+        throw new Error(
+            "Вы не авторизованы."
+        );
+
+    }
+
+
+    store.user =
+        await updateProfile(data);
+
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(
+            store.user
+        )
+    );
+
+}
+
+
+/* =========================
+   ORDERS
+========================= */
+
+
+export async function reloadOrders() {
+
+    if (!store.token) {
+
+        store.orders = [];
+
+        return [];
+
+    }
+
+
+    store.orders =
+        await getOrders();
+
+
+    return store.orders;
+
+}
+
+
+export async function makeOrder() {
+
+    if (!store.token) {
+
+        throw new Error(
+            "Сначала войдите в аккаунт."
+        );
+
+    }
+
+
+    const result =
+        await createOrder();
+
+
+    store.cart =
+        await getCart();
+
+
+    store.orders =
+        await getOrders();
+
+
+    return result;
+
 }
