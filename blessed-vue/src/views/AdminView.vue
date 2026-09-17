@@ -507,6 +507,8 @@ import {
     store
 } from "../store";
 
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+
 
 /* =====================================================
    DATA
@@ -668,7 +670,7 @@ async function loadOrders() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/admin/orders",
+                `${API_URL}/admin/orders`,
                 {
                     method: "GET",
 
@@ -751,7 +753,7 @@ async function changeStatus(
 
         const response =
             await fetch(
-                `http://localhost:3000/api/admin/orders/${orderId}/status`,
+                `${API_URL}/admin/orders/${orderId}/status`,
                 {
                     method: "PATCH",
 
