@@ -828,6 +828,114 @@ app.get("/api/orders", authenticateToken, async (req, res) => {
     }
 });
 
+app.post("/api/orders", authenticateToken, async (req, res) => {
+
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        const cart = await client.query(`
+            SELECT
+                c.product_id,
+                c.size,
+                c.quantity,
+                p.price
+            FROM cart_items c
+            JOIN products p
+                ON p.id = c.product_id
+            WHERE c.user_id = $1
+        `, [req.user.id]);
+
+        if (cart.rows.length === 0) {
+            await client.query("ROLLBACK");
+
+            return res.status(400).json({
+                message: "Корзина пуста"
+            });
+        }
+
+        const user = await client.query(`
+            SELECT address
+            FROM users
+            WHERE id = $1
+        `, [req.user.id]);
+
+        const address = user.rows[0]?.address;
+
+        if (!address) {
+            await client.query("ROLLBACK");
+
+            return res.status(400).json({
+                message: "Сначала укажите адрес доставки"
+            });
+        }
+
+        let total = 0;
+
+        cart.rows.forEach(item => {
+            total +=
+                Number(item.price) *
+                Number(item.quantity);
+        });
+
+        const orderResult = await client.query(`
+            INSERT INTO orders
+                (user_id, total, status, address)
+            VALUES
+                ($1, $2, 'Принят', $3)
+            RETURNING id, order_date, total, status, address
+        `, [
+            req.user.id,
+            total,
+            address
+        ]);
+
+        const order = orderResult.rows[0];
+
+        for (const item of cart.rows) {
+            await client.query(`
+                INSERT INTO order_items
+                    (order_id, product_id, size, quantity, price)
+                VALUES
+                    ($1, $2, $3, $4, $5)
+            `, [
+                order.id,
+                item.product_id,
+                item.size,
+                item.quantity,
+                item.price
+            ]);
+        }
+
+        await client.query(`
+            DELETE FROM cart_items
+            WHERE user_id = $1
+        `, [req.user.id]);
+
+        await client.query("COMMIT");
+
+        res.status(201).json({
+            message: "Заказ создан",
+            order
+        });
+
+    } catch (error) {
+
+        await client.query("ROLLBACK");
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Ошибка создания заказа"
+        });
+
+    } finally {
+        client.release();
+    }
+
+});
+
 
 // =========================
 // CONFIRM ORDER RECEIVED
