@@ -29,6 +29,18 @@
 
             <aside class="filters">
 
+                <div class="filters-top">
+                    <span>ФИЛЬТРЫ</span>
+
+                    <button
+                        type="button"
+                        @click="resetFilters"
+                    >
+                        СБРОСИТЬ
+                    </button>
+                </div>
+
+
                 <div class="filter-section">
 
                     <h3>
@@ -151,6 +163,114 @@
                         </button>
 
                     </div>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <h3>
+                        Бренд
+                    </h3>
+
+                    <select v-model="selectedBrand">
+                        <option value="">
+                            Все бренды
+                        </option>
+
+                        <option
+                            v-for="brand in brands"
+                            :key="brand"
+                            :value="brand"
+                        >
+                            {{ brand }}
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <h3>
+                        Цвет
+                    </h3>
+
+                    <select v-model="selectedColor">
+                        <option value="">
+                            Все цвета
+                        </option>
+
+                        <option
+                            v-for="color in colors"
+                            :key="color"
+                            :value="color"
+                        >
+                            {{ color }}
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <h3>
+                        Сезон
+                    </h3>
+
+                    <select v-model="selectedSeason">
+                        <option value="">
+                            Все сезоны
+                        </option>
+
+                        <option
+                            v-for="season in seasons"
+                            :key="season"
+                            :value="season"
+                        >
+                            {{ season }}
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <h3>
+                        Стиль
+                    </h3>
+
+                    <select v-model="selectedStyle">
+                        <option value="">
+                            Все стили
+                        </option>
+
+                        <option
+                            v-for="style in styles"
+                            :key="style"
+                            :value="style"
+                        >
+                            {{ style }}
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <label class="availability-filter">
+                        <input
+                            v-model="onlyNew"
+                            type="checkbox"
+                        >
+
+                        <span>
+                            Только новинки
+                        </span>
+                    </label>
 
                 </div>
 
@@ -316,6 +436,21 @@ const minPrice =
 const maxPrice =
     ref(null);
 
+const selectedBrand =
+    ref("");
+
+const selectedColor =
+    ref("");
+
+const selectedSeason =
+    ref("");
+
+const selectedStyle =
+    ref("");
+
+const onlyNew =
+    ref(false);
+
 const sort =
     ref("default");
 
@@ -412,6 +547,62 @@ const types =
     });
 
 
+const brands =
+    computed(() => {
+
+        return [
+            ...new Set(
+                categoryProducts.value
+                    .map(product => product.brand)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+    });
+
+
+const colors =
+    computed(() => {
+
+        return [
+            ...new Set(
+                categoryProducts.value
+                    .map(product => product.color)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+    });
+
+
+const seasons =
+    computed(() => {
+
+        return [
+            ...new Set(
+                categoryProducts.value
+                    .map(product => product.season)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+    });
+
+
+const styles =
+    computed(() => {
+
+        return [
+            ...new Set(
+                categoryProducts.value
+                    .map(product => product.style)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+    });
+
+
 const sizes =
     computed(() => {
 
@@ -502,6 +693,65 @@ const filteredProducts =
         }
 
 
+        if (selectedBrand.value) {
+
+            result =
+                result.filter(
+                    product =>
+                        product.brand ===
+                        selectedBrand.value
+                );
+
+        }
+
+
+        if (selectedColor.value) {
+
+            result =
+                result.filter(
+                    product =>
+                        product.color ===
+                        selectedColor.value
+                );
+
+        }
+
+
+        if (selectedSeason.value) {
+
+            result =
+                result.filter(
+                    product =>
+                        product.season ===
+                        selectedSeason.value
+                );
+
+        }
+
+
+        if (selectedStyle.value) {
+
+            result =
+                result.filter(
+                    product =>
+                        product.style ===
+                        selectedStyle.value
+                );
+
+        }
+
+
+        if (onlyNew.value) {
+
+            result =
+                result.filter(
+                    product =>
+                        Boolean(product.is_new)
+                );
+
+        }
+
+
         if (sort.value === "cheap") {
 
             result.sort(
@@ -574,6 +824,25 @@ const eyebrow =
     });
 
 
+function resetFilters() {
+
+    selectedType.value = "";
+    selectedSize.value = "";
+
+    minPrice.value = null;
+    maxPrice.value = null;
+
+    selectedBrand.value = "";
+    selectedColor.value = "";
+    selectedSeason.value = "";
+    selectedStyle.value = "";
+
+    onlyNew.value = false;
+    sort.value = "default";
+
+}
+
+
 function setCategory(category) {
 
     selectedCategory.value =
@@ -582,6 +851,17 @@ function setCategory(category) {
     selectedType.value = "";
 
     selectedSize.value = "";
+
+    minPrice.value = null;
+    maxPrice.value = null;
+
+    selectedBrand.value = "";
+    selectedColor.value = "";
+    selectedSeason.value = "";
+    selectedStyle.value = "";
+
+    onlyNew.value = false;
+    sort.value = "default";
 
 
     router.push({

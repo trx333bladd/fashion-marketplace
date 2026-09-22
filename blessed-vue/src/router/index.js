@@ -7,6 +7,8 @@ import {
 import HomeView from "../views/HomeView.vue";
 import CatalogView from "../views/CatalogView.vue";
 import ProductView from "../views/ProductView.vue";
+import FavoritesView from "../views/FavoritesView.vue";
+import NotificationsView from "../views/NotificationsView.vue";
 import ProfileView from "../views/ProfileView.vue";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
@@ -38,6 +40,16 @@ const router = createRouter({
         {
             path: "/product/:id",
             component: ProductView
+        },
+
+        {
+            path: "/favorites",
+            component: FavoritesView
+        },
+
+        {
+            path: "/notifications",
+            component: NotificationsView
         },
 
         {
@@ -140,22 +152,12 @@ router.beforeEach(async (to) => {
 
     if (isLoggedIn && isAdmin) {
 
-        /*
-            Админ может оставаться
-            только на /admin
-        */
-
         if (to.path === "/admin") {
 
             return true;
 
         }
 
-
-        /*
-            Даже login/register
-            ему больше не нужны
-        */
 
         return "/admin";
 

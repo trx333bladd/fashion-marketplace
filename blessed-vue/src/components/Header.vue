@@ -141,18 +141,30 @@
             </button>
 
 
+            <!-- NOTIFICATIONS -->
+
+            <RouterLink
+                to="/notifications"
+                class="header-button notification-header-button"
+            >
+                🔔
+                <span>
+                    {{ notificationCount }}
+                </span>
+            </RouterLink>
+
+
             <!-- FAVORITES -->
 
-            <button
-                class="header-button"
-                type="button"
-                @click="openFavorites"
+            <RouterLink
+                to="/favorites"
+                class="header-button favorites-header-button"
             >
                 ♡
                 <span>
                     {{ store.favorites.length }}
                 </span>
-            </button>
+            </RouterLink>
 
 
             <!-- CART -->
@@ -658,6 +670,43 @@ const favoritesOpen = ref(false);
 
 
 /* =====================================================
+   NOTIFICATIONS
+===================================================== */
+
+const notificationCount = ref(0);
+
+
+function updateNotificationCount() {
+
+    const readNotifications = JSON.parse(
+        localStorage.getItem(
+            "blessedReadNotifications"
+        ) || "[]"
+    );
+
+
+    notificationCount.value =
+        store.orders.filter(order => {
+
+            const notificationId =
+                `order-${order.id}-${order.status}`;
+
+            return !readNotifications.includes(
+                notificationId
+            );
+
+        }).length;
+
+}
+
+
+window.addEventListener(
+    "notifications-updated",
+    updateNotificationCount
+);
+
+
+/* =====================================================
    CART
 ===================================================== */
 
@@ -758,6 +807,8 @@ function logoutUser() {
 onMounted(async () => {
 
     applyTheme();
+
+    updateNotificationCount();
 
 
     if (!isAdmin.value) {
