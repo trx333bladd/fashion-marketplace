@@ -938,7 +938,6 @@ app.post("/api/orders", authenticateToken, async (req, res) => {
 
             console.error(
                 "Receive order error:",
-                error
             );
 
             res.status(500).json({
@@ -961,7 +960,7 @@ app.get(
                 SELECT
                     o.id,
                     o.user_id,
-                    u.name AS user_name,
+                    u.name AS user_name, 
                     u.email,
                     u.phone,
                     o.order_date,
