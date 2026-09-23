@@ -1,4 +1,5 @@
 <template>
+
     <main class="product-page">
 
         <RouterLink
@@ -25,333 +26,264 @@
         </div>
 
 
-        <template v-else-if="product">
+        <div
+            v-else-if="product"
+            class="product-layout"
+        >
 
-            <div class="product-layout">
+            <section class="product-gallery">
 
-                <section class="product-gallery">
+                <div class="main-photo">
 
-                    <div class="main-photo">
+                    <img
+                        :src="getImageUrl(product.images[currentImage])"
+                        :alt="product.name"
+                    >
 
-                        <img
-                            :src="getImageUrl(product.images[currentImage])"
-                            :alt="product.name"
-                        >
-
-                        <button
-                            v-if="product.images.length > 1"
-                            class="gallery-arrow gallery-left"
-                            type="button"
-                            @click="previousImage"
-                        >
-                            ←
-                        </button>
-
-                        <button
-                            v-if="product.images.length > 1"
-                            class="gallery-arrow gallery-right"
-                            type="button"
-                            @click="nextImage"
-                        >
-                            →
-                        </button>
-
-                    </div>
-
-
-                    <div
+                    <button
                         v-if="product.images.length > 1"
-                        class="thumbnails"
+                        class="gallery-arrow gallery-left"
+                        type="button"
+                        @click="previousImage"
                     >
+                        ←
+                    </button>
 
-                        <button
-                            v-for="(image, index) in product.images"
-                            :key="image + index"
-                            type="button"
-                            :class="{
-                                active: currentImage === index
-                            }"
-                            @click="currentImage = index"
-                        >
-
-                            <img
-                                :src="getImageUrl(image)"
-                                :alt="product.name"
-                            >
-
-                        </button>
-
-                    </div>
-
-                </section>
-
-
-                <section class="product-info-page">
-
-                    <p class="eyebrow">
-                        {{ product.type }}
-                    </p>
-
-                    <p class="product-brand">
-                        {{ product.brand }}
-                    </p>
-
-                    <h1>
-                        {{ product.name }}
-                    </h1>
-
-                    <div class="big-price">
-                        {{ formatPrice(product.price) }}
-                    </div>
-
-
-                    <div
-                        v-if="recommendedSize"
-                        class="recommended-size"
+                    <button
+                        v-if="product.images.length > 1"
+                        class="gallery-arrow gallery-right"
+                        type="button"
+                        @click="nextImage"
                     >
-                        <span>Рекомендуем вам:</span>
-                        <strong>{{ recommendedSize }}</strong>
-                    </div>
-
-
-                    <section class="product-section">
-
-                        <div class="section-row">
-
-                            <h2>Размер</h2>
-
-                            <span>
-                                {{
-                                    selectedSize
-                                        ? "Выбран " + selectedSize
-                                        : "Выберите размер"
-                                }}
-                            </span>
-
-                        </div>
-
-
-                        <div class="product-sizes">
-
-                            <button
-                                v-for="size in product.sizes"
-                                :key="size"
-                                type="button"
-                                :class="{
-                                    active: selectedSize === size
-                                }"
-                                @click="selectedSize = size"
-                            >
-                                {{ size }}
-                            </button>
-
-                        </div>
-
-                    </section>
-
-
-                    <div class="product-buttons">
-
-                        <button
-                            class="main-button"
-                            type="button"
-                            @click="add"
-                        >
-                            {{ added ? "Добавлено ✓" : "В КОРЗИНУ" }}
-                        </button>
-
-                        <button
-                            class="second-button"
-                            type="button"
-                            @click="favorite"
-                        >
-                            {{ isFavorite ? "♥ Сохранено" : "♡ В ИЗБРАННОЕ" }}
-                        </button>
-
-                    </div>
-
-
-                    <section class="product-section">
-
-                        <h2>О товаре</h2>
-
-                        <p class="long-text">
-                            {{ product.description || "Описание товара отсутствует." }}
-                        </p>
-
-                    </section>
-
-
-                    <section class="product-section">
-
-                        <h2>Характеристики</h2>
-
-                        <div class="specs">
-
-                            <div>
-                                <span>Бренд</span>
-                                <strong>{{ product.brand || "—" }}</strong>
-                            </div>
-
-                            <div>
-                                <span>Материал</span>
-                                <strong>{{ product.material || "—" }}</strong>
-                            </div>
-
-                            <div>
-                                <span>Цвет</span>
-                                <strong>{{ product.color || "—" }}</strong>
-                            </div>
-
-                            <div>
-                                <span>Сезон</span>
-                                <strong>{{ product.season || "—" }}</strong>
-                            </div>
-
-                            <div>
-                                <span>Стилистика</span>
-                                <strong>{{ product.style || "—" }}</strong>
-                            </div>
-
-                        </div>
-
-                    </section>
-
-
-                    <section class="product-section">
-
-                        <h2>Размерная сетка</h2>
-
-                        <div
-                            v-if="!isShoes"
-                            class="size-chart"
-                        >
-
-                            <div class="chart-head">
-                                <span>Размер</span>
-                                <span>Грудь</span>
-                                <span>Талия</span>
-                            </div>
-
-                            <div
-                                v-for="row in clothingSizes"
-                                :key="row.size"
-                                class="chart-row"
-                                :class="{
-                                    active: product.sizes.includes(row.size)
-                                }"
-                            >
-
-                                <span>{{ row.size }}</span>
-                                <span>{{ row.chest }}</span>
-                                <span>{{ row.waist }}</span>
-
-                            </div>
-
-                        </div>
-
-
-                        <div
-                            v-else
-                            class="size-chart"
-                        >
-
-                            <div class="chart-head shoe-head">
-                                <span>EU</span>
-                                <span>Стопа</span>
-                            </div>
-
-                            <div
-                                v-for="row in shoeSizes"
-                                :key="row.size"
-                                class="chart-row shoe-row"
-                                :class="{
-                                    active: product.sizes.includes(row.size)
-                                }"
-                            >
-
-                                <span>{{ row.size }}</span>
-                                <span>{{ row.cm }}</span>
-
-                            </div>
-
-                        </div>
-
-                    </section>
-
-                </section>
-
-            </div>
-
-
-            <!-- =========================
-                 RECENT PRODUCTS
-            ========================== -->
-
-            <section
-                v-if="recentProducts.length > 1"
-                class="recent-products"
-            >
-
-                <div class="recent-products-head">
-
-                    <p class="eyebrow">
-                        ВЫ СМОТРЕЛИ
-                    </p>
-
-                    <h2>
-                        Недавно просмотренные
-                    </h2>
+                        →
+                    </button>
 
                 </div>
 
 
-                <div class="recent-products-grid">
+                <div
+                    v-if="product.images.length > 1"
+                    class="thumbnails"
+                >
 
-                    <RouterLink
-                        v-for="item in recentProducts.filter(
-                            item =>
-                                Number(item.id) !==
-                                Number(product.id)
-                        )"
-                        :key="item.id"
-                        :to="'/product/' + item.id"
-                        class="recent-product-card"
+                    <button
+                        v-for="(image, index) in product.images"
+                        :key="image + index"
+                        type="button"
+                        :class="{
+                            active: currentImage === index
+                        }"
+                        @click="currentImage = index"
                     >
 
-                        <div class="recent-product-image">
+                        <img
+                            :src="getImageUrl(image)"
+                            :alt="product.name"
+                        >
 
-                            <img
-                                :src="getImageUrl(item.images?.[0])"
-                                :alt="item.name"
-                            >
-
-                        </div>
-
-
-                        <div class="recent-product-info">
-
-                            <span>
-                                {{ item.brand || item.type || "BLESSED" }}
-                            </span>
-
-                            <strong>
-                                {{ item.name }}
-                            </strong>
-
-                            <b>
-                                {{ formatPrice(item.price) }}
-                            </b>
-
-                        </div>
-
-                    </RouterLink>
+                    </button>
 
                 </div>
 
             </section>
 
-        </template>
+
+            <section class="product-info-page">
+
+                <p class="eyebrow">
+                    {{ product.type }}
+                </p>
+
+                <p class="product-brand">
+                    {{ product.brand }}
+                </p>
+
+                <h1>
+                    {{ product.name }}
+                </h1>
+
+                <div class="big-price">
+                    {{ formatPrice(product.price) }}
+                </div>
+
+
+                <div
+                    v-if="recommendedSize"
+                    class="recommended-size"
+                >
+                    <span>Рекомендуем вам:</span>
+                    <strong>{{ recommendedSize }}</strong>
+                </div>
+
+
+                <section class="product-section">
+
+                    <div class="section-row">
+
+                        <h2>Размер</h2>
+
+                        <span>
+                            {{
+                                selectedSize
+                                    ? "Выбран " + selectedSize
+                                    : "Выберите размер"
+                            }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="product-sizes">
+
+                        <button
+                            v-for="size in product.sizes"
+                            :key="size"
+                            type="button"
+                            :class="{
+                                active: selectedSize === size
+                            }"
+                            @click="selectedSize = size"
+                        >
+                            {{ size }}
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                <div class="product-buttons">
+
+                    <button
+                        class="main-button"
+                        type="button"
+                        @click="add"
+                    >
+                        {{ added ? "Добавлено ✓" : "В КОРЗИНУ" }}
+                    </button>
+
+                    <button
+                        class="second-button"
+                        type="button"
+                        @click="favorite"
+                    >
+                        {{ isFavorite ? "♥ Сохранено" : "♡ В ИЗБРАННОЕ" }}
+                    </button>
+
+                </div>
+
+
+                <section class="product-section">
+
+                    <h2>О товаре</h2>
+
+                    <p class="long-text">
+                        {{ product.description || "Описание товара отсутствует." }}
+                    </p>
+
+                </section>
+
+
+                <section class="product-section">
+
+                    <h2>Характеристики</h2>
+
+                    <div class="specs">
+
+                        <div>
+                            <span>Бренд</span>
+                            <strong>{{ product.brand || "—" }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Материал</span>
+                            <strong>{{ product.material || "—" }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Цвет</span>
+                            <strong>{{ product.color || "—" }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Сезон</span>
+                            <strong>{{ product.season || "—" }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Стилистика</span>
+                            <strong>{{ product.style || "—" }}</strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="product-section">
+
+                    <h2>Размерная сетка</h2>
+
+                    <div
+                        v-if="!isShoes"
+                        class="size-chart"
+                    >
+
+                        <div class="chart-head">
+                            <span>Размер</span>
+                            <span>Грудь</span>
+                            <span>Талия</span>
+                        </div>
+
+                        <div
+                            v-for="row in clothingSizes"
+                            :key="row.size"
+                            class="chart-row"
+                            :class="{
+                                active: product.sizes.includes(row.size)
+                            }"
+                        >
+
+                            <span>{{ row.size }}</span>
+                            <span>{{ row.chest }}</span>
+                            <span>{{ row.waist }}</span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        v-else
+                        class="size-chart"
+                    >
+
+                        <div class="chart-head shoe-head">
+                            <span>EU</span>
+                            <span>Стопа</span>
+                        </div>
+
+                        <div
+                            v-for="row in shoeSizes"
+                            :key="row.size"
+                            class="chart-row shoe-row"
+                            :class="{
+                                active: product.sizes.includes(row.size)
+                            }"
+                        >
+
+                            <span>{{ row.size }}</span>
+                            <span>{{ row.cm }}</span>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </div>
 
 
         <div
@@ -361,7 +293,185 @@
             Товар не найден.
         </div>
 
+
+        <section
+            v-if="product"
+            class="product-reviews"
+        >
+
+            <div class="product-reviews-head">
+
+                <div>
+                    <p class="eyebrow">
+                        ОТЗЫВЫ
+                    </p>
+
+                    <h2>
+                        Отзывы о товаре
+                    </h2>
+                </div>
+
+                <div class="product-rating-summary">
+                    <strong>{{ productRating ? productRating.toFixed(1) : "—" }}</strong>
+                    <span>★★★★★</span>
+                    <small>{{ productReviewCount }} отзывов</small>
+                </div>
+
+            </div>
+
+            <p
+                v-if="reviewError"
+                class="review-error"
+            >
+                {{ reviewError }}
+            </p>
+
+            <div
+                v-if="productReviews.length === 0"
+                class="empty-reviews"
+            >
+                Пока нет отзывов. Будьте первым!
+            </div>
+
+            <div
+                v-else
+                class="reviews-list"
+            >
+
+                <article
+                    v-for="review in productReviews"
+                    :key="review.id"
+                    class="review-card"
+                >
+                    <div class="review-card-top">
+                        <strong>{{ review.user_name }}</strong>
+                        <span>{{ new Date(review.created_at).toLocaleDateString("ru-RU") }}</span>
+                    </div>
+
+                    <div class="review-stars">
+                        {{ "★".repeat(Number(review.rating)) }}{{ "☆".repeat(5 - Number(review.rating)) }}
+                    </div>
+
+                    <p>{{ review.text }}</p>
+                </article>
+
+            </div>
+
+            <div class="review-form">
+
+                <div class="review-form-title">
+                    <h3>Оставить отзыв</h3>
+                    <span v-if="!store.user">Войдите, чтобы оставить отзыв</span>
+                </div>
+
+                <div
+                    v-if="store.user"
+                    class="review-form-fields"
+                >
+                    <div class="review-rating-picker">
+                        <button
+                            v-for="star in 5"
+                            :key="star"
+                            type="button"
+                            :class="{ active: star <= reviewRating }"
+                            @click="reviewRating = star"
+                        >
+                            ★
+                        </button>
+                    </div>
+
+                    <textarea
+                        v-model="reviewText"
+                        rows="4"
+                        maxlength="1000"
+                        placeholder="Расскажите, что думаете о товаре..."
+                    ></textarea>
+
+                    <button
+                        class="main-button"
+                        type="button"
+                        :disabled="reviewSubmitting"
+                        @click="submitProductReview"
+                    >
+                        {{ reviewSubmitting ? "ОТПРАВКА..." : "ОСТАВИТЬ ОТЗЫВ" }}
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             RECENT PRODUCTS
+        ========================== -->
+
+        <section
+            v-if="recentProducts.length > 1"
+            class="recent-products"
+        >
+
+            <div class="recent-products-head">
+
+                <p class="eyebrow">
+                    ВЫ СМОТРЕЛИ
+                </p>
+
+                <h2>
+                    Недавно просмотренные
+                </h2>
+
+            </div>
+
+
+            <div class="recent-products-grid">
+
+                <RouterLink
+                    v-for="item in recentProducts.filter(
+                        item =>
+                            Number(item.id) !==
+                            Number(product?.id)
+                    )"
+                    :key="item.id"
+                    :to="'/product/' + item.id"
+                    class="recent-product-card"
+                >
+
+                    <div class="recent-product-image">
+
+                        <img
+                            :src="getImageUrl(item.images?.[0])"
+                            :alt="item.name"
+                        >
+
+                    </div>
+
+
+                    <div class="recent-product-info">
+
+                        <span>
+                            {{ item.brand || item.type || "BLESSED" }}
+                        </span>
+
+                        <strong>
+                            {{ item.name }}
+                        </strong>
+
+                        <b>
+                            {{ formatPrice(item.price) }}
+                        </b>
+
+                    </div>
+
+                </RouterLink>
+
+            </div>
+
+        </section>
+
+
     </main>
+
 </template>
 
 
@@ -378,7 +488,9 @@ import {
 } from "vue-router";
 
 import {
-    getProducts
+    getProducts,
+    getProductReviews,
+    addProductReview
 } from "../api";
 
 import {
@@ -411,6 +523,91 @@ const added = ref(false);
 
 const recentProducts = ref([]);
 
+const productReviews = ref([]);
+
+const productRating = ref(0);
+
+const productReviewCount = ref(0);
+
+const reviewRating = ref(5);
+
+const reviewText = ref("");
+
+const reviewSubmitting = ref(false);
+
+const reviewError = ref("");
+
+
+async function loadReviews(productId) {
+
+    try {
+
+        reviewError.value = "";
+
+        const data = await getProductReviews(productId);
+
+        productReviews.value = data.reviews || [];
+
+        productRating.value = Number(data.rating || 0);
+
+        productReviewCount.value = Number(data.count || 0);
+
+    } catch (err) {
+
+        console.error(err);
+
+        reviewError.value = "Не удалось загрузить отзывы.";
+
+    }
+
+}
+
+
+async function submitProductReview() {
+
+    if (!product.value) {
+        return;
+    }
+
+    if (!store.user) {
+        alert("Сначала войдите в аккаунт.");
+        return;
+    }
+
+    if (!reviewText.value.trim()) {
+        alert("Напишите текст отзыва.");
+        return;
+    }
+
+    try {
+
+        reviewSubmitting.value = true;
+
+        reviewError.value = "";
+
+        await addProductReview(
+            product.value.id,
+            Number(reviewRating.value),
+            reviewText.value.trim()
+        );
+
+        reviewText.value = "";
+        reviewRating.value = 5;
+
+        await loadReviews(product.value.id);
+
+    } catch (err) {
+
+        reviewError.value = err.message || "Не удалось отправить отзыв.";
+
+    } finally {
+
+        reviewSubmitting.value = false;
+
+    }
+
+}
+
 
 /* =========================
    LOAD PRODUCTS
@@ -426,6 +623,17 @@ async function loadProducts() {
 
 
         products.value = await getProducts();
+
+
+        const loadedProduct = products.value.find(
+            item =>
+                Number(item.id) ===
+                Number(route.params.id)
+        );
+
+        if (loadedProduct) {
+            await loadReviews(loadedProduct.id);
+        }
 
 
         /* =========================
@@ -920,202 +1128,3 @@ async function favorite() {
 }
 
 </script>
-
-<style scoped>
-
-/* =========================================
-   RECENT PRODUCTS
-========================================= */
-
-.recent-products {
-    width: 100%;
-    max-width: 1400px;
-    margin: 80px auto 0;
-    padding: 0 40px 100px;
-    box-sizing: border-box;
-}
-
-.recent-products-head {
-    margin-bottom: 28px;
-}
-
-.recent-products-head .eyebrow {
-    margin: 0 0 8px;
-    font-size: 9px;
-    letter-spacing: 2.5px;
-    color: #777;
-    text-transform: uppercase;
-}
-
-.recent-products-head h2 {
-    margin: 0;
-    font-size: 32px;
-    line-height: 1;
-    font-weight: 400;
-    letter-spacing: -1px;
-}
-
-
-/* =========================================
-   GRID
-========================================= */
-
-.recent-products-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
-}
-
-
-/* =========================================
-   CARD
-========================================= */
-
-.recent-product-card {
-    display: block;
-    min-width: 0;
-    color: #111;
-    text-decoration: none;
-    transition: transform .25s ease;
-}
-
-.recent-product-card:hover {
-    transform: translateY(-4px);
-}
-
-
-/* =========================================
-   IMAGE
-========================================= */
-
-.recent-product-image {
-    width: 100%;
-    height: 320px;
-    overflow: hidden;
-    background: #eeeae3;
-}
-
-.recent-product-image img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform .35s ease;
-}
-
-.recent-product-card:hover .recent-product-image img {
-    transform: scale(1.04);
-}
-
-
-/* =========================================
-   INFO
-========================================= */
-
-.recent-product-info {
-    padding: 13px 2px 0;
-}
-
-.recent-product-info span {
-    display: block;
-    margin-bottom: 6px;
-    color: #777;
-    font-size: 8px;
-    line-height: 1;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-}
-
-.recent-product-info strong {
-    display: block;
-    margin-bottom: 8px;
-    overflow: hidden;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.3;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.recent-product-info b {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-
-/* =========================================
-   TABLET
-========================================= */
-
-@media (max-width: 1000px) {
-
-    .recent-products {
-        padding-left: 25px;
-        padding-right: 25px;
-    }
-
-    .recent-products-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .recent-product-image {
-        height: 300px;
-    }
-
-}
-
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 700px) {
-
-    .recent-products {
-        margin-top: 55px;
-        padding: 0 18px 70px;
-    }
-
-    .recent-products-head h2 {
-        font-size: 26px;
-    }
-
-    .recent-products-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .recent-product-image {
-        height: 240px;
-    }
-
-}
-
-
-/* =========================================
-   SMALL MOBILE
-========================================= */
-
-@media (max-width: 450px) {
-
-    .recent-products-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .recent-product-image {
-        height: 210px;
-    }
-
-    .recent-product-info strong {
-        font-size: 11px;
-    }
-
-    .recent-product-info b {
-        font-size: 11px;
-    }
-
-}
-
-</style>

@@ -149,6 +149,96 @@
         </section>
 
 
+        <section class="site-reviews-section">
+
+            <div class="site-reviews-head">
+                <div>
+                    <p class="eyebrow">
+                        ОТЗЫВЫ
+                    </p>
+
+                    <h2>
+                        Что говорят о BLESSED
+                    </h2>
+                </div>
+
+                <span>
+                    {{ siteReviews.length }} отзывов
+                </span>
+            </div>
+
+            <div
+                v-if="siteReviews.length === 0"
+                class="empty-site-reviews"
+            >
+                Пока здесь нет отзывов. Станьте первым!
+            </div>
+
+            <div
+                v-else
+                class="site-reviews-grid"
+            >
+                <article
+                    v-for="review in siteReviews"
+                    :key="review.id"
+                    class="site-review-card"
+                >
+                    <div class="site-review-top">
+                        <strong>{{ review.user_name }}</strong>
+                        <span>{{ new Date(review.created_at).toLocaleDateString("ru-RU") }}</span>
+                    </div>
+
+                    <div class="review-stars">
+                        {{ "★".repeat(Number(review.rating)) }}{{ "☆".repeat(5 - Number(review.rating)) }}
+                    </div>
+
+                    <p>{{ review.text }}</p>
+                </article>
+            </div>
+
+            <div class="site-review-form">
+                <div class="site-review-form-title">
+                    <h3>Оставьте свой отзыв</h3>
+                    <span v-if="!store.user">Войдите, чтобы поделиться мнением</span>
+                </div>
+
+                <div
+                    v-if="store.user"
+                    class="review-form-fields"
+                >
+                    <div class="review-rating-picker">
+                        <button
+                            v-for="star in 5"
+                            :key="star"
+                            type="button"
+                            :class="{ active: star <= siteReviewRating }"
+                            @click="siteReviewRating = star"
+                        >
+                            ★
+                        </button>
+                    </div>
+
+                    <textarea
+                        v-model="siteReviewText"
+                        rows="3"
+                        maxlength="1000"
+                        placeholder="Расскажите о своём опыте в BLESSED..."
+                    ></textarea>
+
+                    <button
+                        class="main-button"
+                        type="button"
+                        :disabled="siteReviewSubmitting"
+                        @click="submitSiteReview"
+                    >
+                        {{ siteReviewSubmitting ? "ОТПРАВКА..." : "ОСТАВИТЬ ОТЗЫВ" }}
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+
         <section class="statement">
 
             <p>
@@ -165,3 +255,80 @@
     </main>
 
 </template>
+
+<script setup>
+
+import {
+    onMounted,
+    ref
+} from "vue";
+
+import {
+    getSiteReviews,
+    addSiteReview
+} from "../api";
+
+import {
+    store
+} from "../store";
+
+
+const siteReviews = ref([]);
+
+const siteReviewRating = ref(5);
+
+const siteReviewText = ref("");
+
+const siteReviewSubmitting = ref(false);
+
+
+async function loadSiteReviews() {
+
+    try {
+        const data = await getSiteReviews();
+        siteReviews.value = data.reviews || [];
+    } catch (error) {
+        console.error(error);
+    }
+
+}
+
+
+async function submitSiteReview() {
+
+    if (!store.user) {
+        alert("Сначала войдите в аккаунт.");
+        return;
+    }
+
+    if (!siteReviewText.value.trim()) {
+        alert("Напишите текст отзыва.");
+        return;
+    }
+
+    try {
+
+        siteReviewSubmitting.value = true;
+
+        await addSiteReview(
+            Number(siteReviewRating.value),
+            siteReviewText.value.trim()
+        );
+
+        siteReviewText.value = "";
+        siteReviewRating.value = 5;
+
+        await loadSiteReviews();
+
+    } catch (error) {
+        alert(error.message || "Не удалось отправить отзыв.");
+    } finally {
+        siteReviewSubmitting.value = false;
+    }
+
+}
+
+
+onMounted(loadSiteReviews);
+
+</script>

@@ -236,6 +236,56 @@ export async function createOrder() {
 
 
 // =========================
+// REVIEWS
+// =========================
+
+export async function getProductReviews(productId) {
+
+    return request(`/products/${productId}/reviews`);
+
+}
+
+
+export async function addProductReview(productId, rating, text) {
+
+    return request(
+        `/products/${productId}/reviews`,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                rating,
+                text
+            })
+        }
+    );
+
+}
+
+
+export async function getSiteReviews() {
+
+    return request("/site-reviews");
+
+}
+
+
+export async function addSiteReview(rating, text) {
+
+    return request(
+        "/site-reviews",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                rating,
+                text
+            })
+        }
+    );
+
+}
+
+
+// =========================
 // AI PHOTO SEARCH
 // =========================
 

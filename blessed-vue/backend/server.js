@@ -936,69 +936,6 @@ app.post("/api/orders", authenticateToken, async (req, res) => {
 
 });
 
-
-// =========================
-// CONFIRM ORDER RECEIVED
-// =========================
-
-app.patch(
-    "/api/orders/:id/receive",
-    authenticateToken,
-    async (req, res) => {
-
-        try {
-
-            const orderId =
-                Number(req.params.id);
-
-            if (!Number.isInteger(orderId)) {
-
-                return res.status(400).json({
-                    message: "Неверный ID заказа"
-                });
-
-            }
-
-            const result = await pool.query(
-                `
-                UPDATE orders
-
-                SET is_received = TRUE
-
-                WHERE id = $1
-                  AND user_id = $2
-                  AND status = 'Доставлен'
-                  AND is_received = FALSE
-
-                RETURNING
-                    id,
-                    order_date,
-                    total,
-                    status,
-                    address,
-                    is_received
-                `,
-                [
-                    orderId,
-                    req.user.id
-                ]
-            );
-
-            if (result.rows.length === 0) {
-
-                return res.status(400).json({
-                    message: "Этот заказ нельзя подтвердить"
-                });
-
-            }
-
-            res.json({
-                message: "Получение заказа подтверждено",
-                order: result.rows[0]
-            });
-
-        } catch (error) {
-
             console.error(
                 "Receive order error:",
                 error
@@ -1008,10 +945,6 @@ app.patch(
                 message: "Ошибка подтверждения заказа"
             });
 
-        }
-
-    }
-);
 
 // =========================
 // ADMIN
@@ -1087,6 +1020,7 @@ app.get(
     }
 );
 
+
 // Изменить статус заказа
 app.patch(
     "/api/admin/orders/:id/status",
@@ -1161,96 +1095,467 @@ app.patch(
     }
 );
 
+
+// =========================
+// REVIEWS
+// =========================
+
+app.get("/api/products/:id/reviews", async (req, res) => {
+    try {
+        const productId = Number(req.params.id);
+
+        if (!Number.isInteger(productId)) {
+            return res.status(400).json({
+                message: "Неверный ID товара"
+            });
+        }
+
+        const reviewsResult = await pool.query(`
+            SELECT
+                pr.id,
+                pr.product_id,
+                pr.rating,
+                pr.text,
+                pr.created_at,
+                u.name AS user_name
+
+            FROM product_reviews pr
+
+            JOIN users u
+                ON u.id = pr.user_id
+
+            WHERE pr.product_id = $1
+
+            ORDER BY pr.created_at DESC
+        `, [productId]);
+
+        const ratingResult = await pool.query(`
+            SELECT
+                COALESCE(AVG(rating), 0) AS rating,
+                COUNT(*)::INTEGER AS count
+
+            FROM product_reviews
+
+            WHERE product_id = $1
+        `, [productId]);
+
+        res.json({
+            reviews: reviewsResult.rows,
+            rating: Number(
+                ratingResult.rows[0]?.rating || 0
+            ),
+            count: Number(
+                ratingResult.rows[0]?.count || 0
+            )
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Product reviews error:",
+            error
+        );
+
+        res.status(500).json({
+            message: "Ошибка получения отзывов"
+        });
+    }
+});
+
+
+app.post(
+    "/api/products/:id/reviews",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+            const productId =
+                Number(req.params.id);
+
+            const rating =
+                Number(req.body.rating);
+
+            const text =
+                String(
+                    req.body.text || ""
+                ).trim();
+
+
+            if (!Number.isInteger(productId)) {
+                return res.status(400).json({
+                    message: "Неверный ID товара"
+                });
+            }
+
+
+            if (
+                !Number.isInteger(rating) ||
+                rating < 1 ||
+                rating > 5
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Оценка должна быть от 1 до 5"
+                });
+            }
+
+
+            if (
+                !text ||
+                text.length > 1000
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Отзыв должен содержать от 1 до 1000 символов"
+                });
+            }
+
+
+            const product =
+                await pool.query(
+                    "SELECT id FROM products WHERE id = $1",
+                    [productId]
+                );
+
+
+            if (product.rows.length === 0) {
+                return res.status(404).json({
+                    message: "Товар не найден"
+                });
+            }
+
+
+            const existing =
+                await pool.query(`
+                    SELECT id
+                    FROM product_reviews
+
+                    WHERE product_id = $1
+                      AND user_id = $2
+                `, [
+                    productId,
+                    req.user.id
+                ]);
+
+
+            if (existing.rows.length > 0) {
+                return res.status(409).json({
+                    message:
+                        "Вы уже оставляли отзыв на этот товар"
+                });
+            }
+
+
+            const result =
+                await pool.query(`
+                    INSERT INTO product_reviews
+                        (
+                            product_id,
+                            user_id,
+                            rating,
+                            text
+                        )
+
+                    VALUES
+                        ($1, $2, $3, $4)
+
+                    RETURNING
+                        id,
+                        product_id,
+                        rating,
+                        text,
+                        created_at
+                `, [
+                    productId,
+                    req.user.id,
+                    rating,
+                    text
+                ]);
+
+
+            res.status(201).json({
+                message: "Отзыв добавлен",
+                review: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Product review create error:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Ошибка добавления отзыва"
+            });
+        }
+    }
+);
+
+
+app.get("/api/site-reviews", async (req, res) => {
+
+    try {
+
+        const result =
+            await pool.query(`
+                SELECT
+                    sr.id,
+                    sr.rating,
+                    sr.text,
+                    sr.created_at,
+                    u.name AS user_name
+
+                FROM site_reviews sr
+
+                JOIN users u
+                    ON u.id = sr.user_id
+
+                ORDER BY sr.created_at DESC
+
+                LIMIT 6
+            `);
+
+
+        res.json({
+            reviews: result.rows
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Site reviews error:",
+            error
+        );
+
+        res.status(500).json({
+            message:
+                "Ошибка получения отзывов сайта"
+        });
+    }
+});
+
+
+app.post(
+    "/api/site-reviews",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const rating =
+                Number(req.body.rating);
+
+            const text =
+                String(
+                    req.body.text || ""
+                ).trim();
+
+
+            if (
+                !Number.isInteger(rating) ||
+                rating < 1 ||
+                rating > 5
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Оценка должна быть от 1 до 5"
+                });
+            }
+
+
+            if (
+                !text ||
+                text.length > 1000
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Отзыв должен содержать от 1 до 1000 символов"
+                });
+            }
+
+
+            const existing =
+                await pool.query(`
+                    SELECT id
+                    FROM site_reviews
+
+                    WHERE user_id = $1
+                `, [
+                    req.user.id
+                ]);
+
+
+            if (existing.rows.length > 0) {
+                return res.status(409).json({
+                    message:
+                        "Вы уже оставляли отзыв о сайте"
+                });
+            }
+
+
+            const result =
+                await pool.query(`
+                    INSERT INTO site_reviews
+                        (
+                            user_id,
+                            rating,
+                            text
+                        )
+
+                    VALUES
+                        ($1, $2, $3)
+
+                    RETURNING
+                        id,
+                        rating,
+                        text,
+                        created_at
+                `, [
+                    req.user.id,
+                    rating,
+                    text
+                ]);
+
+
+            res.status(201).json({
+                message: "Отзыв добавлен",
+                review: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Site review create error:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Ошибка добавления отзыва"
+            });
+        }
+    }
+);
+
+
 // =========================
 // AI PHOTO SEARCH
 // =========================
 
 app.post("/api/ai-search", async (req, res) => {
+
     try {
 
         const { image } = req.body;
 
+
         if (!image) {
             return res.status(400).json({
-                message: "Фотография не передана"
+                message:
+                    "Фотография не передана"
             });
         }
+
 
         if (!process.env.OPENAI_API_KEY) {
             return res.status(500).json({
-                message: "OPENAI_API_KEY не найден в .env"
+                message:
+                    "OPENAI_API_KEY не найден в .env"
             });
         }
 
-        const productsResult = await pool.query(`
-            SELECT
-                p.id,
-                p.name,
-                p.price,
-                p.description,
-                p.material,
-                p.color,
-                p.season,
-                p.style,
-                b.name AS brand,
-                s.name AS type,
-                c.name AS category
-            FROM products p
 
-            LEFT JOIN brands b
-                ON b.id = p.brand_id
+        const productsResult =
+            await pool.query(`
+                SELECT
+                    p.id,
+                    p.name,
+                    p.price,
+                    p.description,
+                    p.material,
+                    p.color,
+                    p.season,
+                    p.style,
 
-            LEFT JOIN subcategories s
-                ON s.id = p.subcategory_id
+                    b.name AS brand,
+                    s.name AS type,
+                    c.name AS category
 
-            LEFT JOIN categories c
-                ON c.id = s.category_id
+                FROM products p
 
-            WHERE p.is_available = TRUE
+                LEFT JOIN brands b
+                    ON b.id = p.brand_id
 
-            ORDER BY p.id
-        `);
+                LEFT JOIN subcategories s
+                    ON s.id = p.subcategory_id
 
-        const products = productsResult.rows;
+                LEFT JOIN categories c
+                    ON c.id = s.category_id
 
-        const catalog = products.map(product => ({
-            id: Number(product.id),
-            name: product.name,
-            brand: product.brand || "",
-            category: product.category || "",
-            type: product.type || "",
-            color: product.color || "",
-            material: product.material || "",
-            season: product.season || "",
-            style: product.style || ""
-        }));
+                WHERE p.is_available = TRUE
 
-        const response = await fetch(
-            "https://api.openai.com/v1/responses",
-            {
-                method: "POST",
+                ORDER BY p.id
+            `);
 
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization":
-                        `Bearer ${process.env.OPENAI_API_KEY}`
-                },
 
-                body: JSON.stringify({
+        const products =
+            productsResult.rows;
 
-                    model:
-                        process.env.OPENAI_MODEL ||
-                        "gpt-5.6-luna",
 
-                    input: [
-                        {
-                            role: "user",
+        const catalog =
+            products.map(product => ({
+                id: Number(product.id),
+                name: product.name,
+                brand: product.brand || "",
+                category:
+                    product.category || "",
+                type:
+                    product.type || "",
+                color:
+                    product.color || "",
+                material:
+                    product.material || "",
+                season:
+                    product.season || "",
+                style:
+                    product.style || ""
+            }));
 
-                            content: [
-                                {
-                                    type: "input_text",
 
-                                    text: `
+        const response =
+            await fetch(
+                "https://api.openai.com/v1/responses",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            `Bearer ${process.env.OPENAI_API_KEY}`
+                    },
+
+                    body: JSON.stringify({
+
+                        model:
+                            process.env.OPENAI_MODEL ||
+                            "gpt-5.6-luna",
+
+                        input: [
+                            {
+                                role: "user",
+
+                                content: [
+
+                                    {
+                                        type:
+                                            "input_text",
+
+                                        text: `
+
 Проанализируй фотографию одежды или обуви.
 
 Определи:
@@ -1275,21 +1580,29 @@ app.post("/api/ai-search", async (req, res) => {
 КАТАЛОГ:
 
 ${JSON.stringify(catalog)}
+
 `
-                                },
+                                    },
 
-                                {
-                                    type: "input_image",
-                                    image_url: image
-                                }
-                            ]
-                        }
-                    ]
-                })
-            }
-        );
+                                    {
+                                        type:
+                                            "input_image",
 
-        const aiData = await response.json();
+                                        image_url:
+                                            image
+                                    }
+
+                                ]
+                            }
+                        ]
+                    })
+                }
+            );
+
+
+        const aiData =
+            await response.json();
+
 
         if (!response.ok) {
 
@@ -1299,15 +1612,21 @@ ${JSON.stringify(catalog)}
             );
 
             return res.status(500).json({
-                message: "Ошибка OpenAI API"
+                message:
+                    "Ошибка OpenAI API"
             });
         }
+
 
         const text =
             aiData.output_text || "";
 
+
         const match =
-            text.match(/\{[\s\S]*\}/);
+            text.match(
+                /\{[\s\S]*\}/
+            );
+
 
         if (!match) {
 
@@ -1317,16 +1636,21 @@ ${JSON.stringify(catalog)}
             });
         }
 
+
         const result =
             JSON.parse(match[0]);
+
 
         const ids =
             Array.isArray(result.ids)
                 ? result.ids
                     .map(Number)
-                    .filter(Number.isInteger)
+                    .filter(
+                        Number.isInteger
+                    )
                     .slice(0, 5)
                 : [];
+
 
         const matchedProducts =
             products.filter(product =>
@@ -1335,13 +1659,17 @@ ${JSON.stringify(catalog)}
                 )
             );
 
+
         res.json({
+
             description:
                 result.description || "",
 
             products:
                 matchedProducts
+
         });
+
 
     } catch (error) {
 
@@ -1357,8 +1685,115 @@ ${JSON.stringify(catalog)}
     }
 });
 
-const PORT = process.env.PORT || 3000;
+// =========================
+// REVIEW TABLES
+// =========================
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Backend запущен на порту ${PORT}`);
-});
+async function ensureReviewTables() {
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS product_reviews (
+            id SERIAL PRIMARY KEY,
+
+            product_id INTEGER NOT NULL
+                REFERENCES products(id)
+                ON DELETE CASCADE,
+
+            user_id INTEGER NOT NULL
+                REFERENCES users(id)
+                ON DELETE CASCADE,
+
+            rating INTEGER NOT NULL
+                CHECK (rating BETWEEN 1 AND 5),
+
+            text TEXT NOT NULL
+                CHECK (
+                    length(trim(text))
+                    BETWEEN 1 AND 1000
+                ),
+
+            created_at TIMESTAMP NOT NULL
+                DEFAULT CURRENT_TIMESTAMP,
+
+            UNIQUE (product_id, user_id)
+        );
+
+
+        CREATE TABLE IF NOT EXISTS site_reviews (
+            id SERIAL PRIMARY KEY,
+
+            user_id INTEGER NOT NULL
+                REFERENCES users(id)
+                ON DELETE CASCADE,
+
+            rating INTEGER NOT NULL
+                CHECK (rating BETWEEN 1 AND 5),
+
+            text TEXT NOT NULL
+                CHECK (
+                    length(trim(text))
+                    BETWEEN 1 AND 1000
+                ),
+
+            created_at TIMESTAMP NOT NULL
+                DEFAULT CURRENT_TIMESTAMP,
+
+            UNIQUE (user_id)
+        );
+
+
+        CREATE INDEX IF NOT EXISTS
+            idx_product_reviews_product_id
+
+        ON product_reviews(product_id);
+
+
+        CREATE INDEX IF NOT EXISTS
+            idx_site_reviews_created_at
+
+        ON site_reviews(created_at DESC);
+    `);
+
+
+    console.log(
+        "Таблицы отзывов готовы"
+    );
+}
+
+
+// =========================
+// START SERVER
+// =========================
+
+const PORT =
+    process.env.PORT || 3000;
+
+
+ensureReviewTables()
+
+    .then(() => {
+
+        app.listen(
+            PORT,
+            "0.0.0.0",
+            () => {
+
+                console.log(
+                    `Backend запущен на порту ${PORT}`
+                );
+
+            }
+        );
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Не удалось подготовить таблицы отзывов:",
+            error
+        );
+
+        process.exit(1);
+
+    });

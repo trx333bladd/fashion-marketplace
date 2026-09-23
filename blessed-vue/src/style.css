@@ -6123,3 +6123,243 @@ textarea {
         touch-action: manipulation;
     }
 }
+
+/* =========================
+   REVIEWS
+========================= */
+
+.product-reviews,
+.site-reviews-section {
+    width: min(1400px, calc(100% - 76px));
+    margin: 90px auto 0;
+}
+
+.product-reviews-head,
+.site-reviews-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 30px;
+    margin-bottom: 35px;
+}
+
+.product-reviews-head h2,
+.site-reviews-head h2 {
+    margin: 6px 0 0;
+}
+
+.product-rating-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+}
+
+.product-rating-summary strong {
+    font-size: 42px;
+    line-height: 1;
+}
+
+.product-rating-summary span,
+.review-stars {
+    letter-spacing: 2px;
+}
+
+.product-rating-summary small {
+    color: #777;
+}
+
+.reviews-list,
+.site-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.review-card,
+.site-review-card {
+    border: 1px solid #dedede;
+    padding: 24px;
+    min-height: 190px;
+    background: #fff;
+}
+
+.review-card-top,
+.site-review-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 14px;
+}
+
+.review-card-top span,
+.site-review-top span {
+    color: #888;
+    font-size: 12px;
+}
+
+.review-card p,
+.site-review-card p {
+    margin: 15px 0 0;
+    line-height: 1.6;
+}
+
+.review-form,
+.site-review-form {
+    margin-top: 30px;
+    padding: 30px;
+    border: 1px solid #dedede;
+    background: #fafafa;
+}
+
+.review-form-title,
+.site-review-form-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.review-form-title h3,
+.site-review-form-title h3 {
+    margin: 0;
+}
+
+.review-form-title span,
+.site-review-form-title span {
+    color: #777;
+    font-size: 14px;
+}
+
+.review-form-fields {
+    display: grid;
+    gap: 15px;
+}
+
+.review-rating-picker {
+    display: flex;
+    gap: 5px;
+}
+
+.review-rating-picker button {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 28px;
+    color: #bdbdbd;
+    cursor: pointer;
+}
+
+.review-rating-picker button.active {
+    color: #111;
+}
+
+.review-form textarea,
+.site-review-form textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 100px;
+    border: 1px solid #d5d5d5;
+    padding: 14px;
+    background: #fff;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.review-form .main-button:disabled,
+.site-review-form .main-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.review-error {
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    border: 1px solid #d8b0b0;
+}
+
+.empty-reviews,
+.empty-site-reviews {
+    border: 1px dashed #ccc;
+    padding: 35px;
+    text-align: center;
+    color: #777;
+}
+
+.site-reviews-section {
+    padding-bottom: 20px;
+}
+
+.site-reviews-head > span {
+    color: #777;
+}
+
+@media (max-width: 900px) {
+    .reviews-list,
+    .site-reviews-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .product-reviews,
+    .site-reviews-section {
+        width: calc(100% - 32px);
+        margin-top: 55px;
+    }
+
+    .product-reviews-head,
+    .site-reviews-head,
+    .review-form-title,
+    .site-review-form-title {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .reviews-list,
+    .site-reviews-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .review-card,
+    .site-review-card,
+    .review-form,
+    .site-review-form {
+        padding: 20px;
+    }
+
+    .product-rating-summary strong {
+        font-size: 34px;
+    }
+}
+
+html.theme-dark .review-card,
+html.theme-dark .site-review-card,
+html.theme-dark .review-form,
+html.theme-dark .site-review-form,
+html.theme-dark .review-form textarea,
+html.theme-dark .site-review-form textarea {
+    background: #111;
+    color: #fff;
+    border-color: #333;
+}
+
+html.theme-dark .review-card-top span,
+html.theme-dark .site-review-top span,
+html.theme-dark .product-rating-summary small,
+html.theme-dark .review-form-title span,
+html.theme-dark .site-review-form-title span,
+html.theme-dark .empty-reviews,
+html.theme-dark .empty-site-reviews,
+html.theme-dark .site-reviews-head > span {
+    color: #999;
+}
+
+html.theme-dark .review-rating-picker button {
+    color: #555;
+}
+
+html.theme-dark .review-rating-picker button.active {
+    color: #fff;
+}
